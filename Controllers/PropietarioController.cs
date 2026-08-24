@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Inmobiliaria.Models;
+using System.Linq.Expressions;
 
 namespace Inmobiliaria.Controllers;
 
@@ -16,6 +17,7 @@ public class PropietarioController : Controller
     [HttpPost]
     public IActionResult Create([FromBody] Propietario propie) 
     {
+        try{
         if (propie == null)
         {
             return BadRequest("los datos del propietario son nulos");
@@ -28,6 +30,10 @@ public class PropietarioController : Controller
             mensaje = "propietario creado",
             id = idGenerado,
             propietario = propie});
+        }catch(Exception e)
+        {
+            return StatusCode(500, new { error = "Error al crearPropietario", detalle = e.Message });
+        }
     }
 
     [HttpPost]
@@ -87,14 +93,21 @@ public class PropietarioController : Controller
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { error = "Error en el servidor al modificar", detalle = ex.Message });
+            return StatusCode(500, new { error = "Error en el servidor al modificar Propietario", detalle = ex.Message });
         }
     }
 
     [HttpGet]
     public IActionResult Index()
     {
-        var lista = _repositorio.ObtenerTodos();
-        return Ok(lista);
+        try
+        {
+            var lista = _repositorio.ObtenerTodos();
+            return Ok(lista);
+        }catch(Exception e)
+        {
+            return StatusCode(500, new{error = "Error al traer lista propietario", detalle = e.Message});
+        }
+        
     }
 }
