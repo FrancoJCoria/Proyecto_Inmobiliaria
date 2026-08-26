@@ -10,7 +10,7 @@ public class Usuario
 
     [Required(ErrorMessage = "La contraseña es obligatoria")]
     [MinLength(6, ErrorMessage = "La clave debe tener al menos 6 caracteres")]
-    [MaxLength(12, ErrorMessage = "La clave debe contener un maximo de 12 caracteres")]
+    [MaxLength(50, ErrorMessage = "La clave supera la longitud permitida")]
     public string Clave {get; set; }
 
     [Required(ErrorMessage = "El nombre es obligatorio")]
@@ -25,8 +25,8 @@ public class Usuario
     [Required(ErrorMessage = "El rol es obligatorio")]
     public string Rol { get; set; }
     
-    public bool Estado { get; set; }
+    public bool Estado { get; set; } = true;
 
-    public override string ToString() => $"{Nombre} {Apellido} {Email} {Rol}";
+    public override string ToString() => $"{Nombre} {Apellido} {Email} - {Rol}";
 
 }

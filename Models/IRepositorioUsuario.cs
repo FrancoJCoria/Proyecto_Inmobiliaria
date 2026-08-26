@@ -5,5 +5,7 @@ public interface IRepositorioUsuario
     int Baja (Usuario u);
 
     int Modificacion (Usuario u);
+    Usuario? ObtenerPorId(int id);
+    Usuario? ObetenerPorEmail(string email);
 
 }
