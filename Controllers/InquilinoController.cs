@@ -12,20 +12,39 @@ public class InquilinoController : Controller
         _repositorio = repositorio;
     }
 
-    [HttpPost]
-    public IActionResult Create([FromBody] Inquilino inquilino)
+
+    public IActionResult Index()
     {
-        if(inquilino == null)
+        var inquilinos = _repositorio.ObtenerTodos();
+        ViewData["Cantidad"] = inquilinos.Count();
+        ViewBag.Datos = new Inquilino { Id_inquilino = 1, Nombre = "Juan Pérez", Dni = "12345678" };
+        ViewBag.Otro = "Bienvenido al listado de inquilinos";
+        return View(inquilinos);
+    }
+
+    [HttpGet]
+    public IActionResult Create()
+		{
+			return View();
+		}
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Create(IFormCollection form, Inquilino inquilino)
+    {
+        if (ModelState.IsValid) // Pregunta si el modelo es valido
         {
-            return BadRequest("Los datos del inquilino son nulos");
+            int idGenerado = _repositorio.Alta(inquilino);
+            if (idGenerado > 0)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                ModelState.AddModelError("", "No se pudo crear el inquilino.");
+            }
         }
-        int idGenerado = _repositorio.Alta(inquilino);
-        return Ok(new
-        {
-            mensaje = "Inquilino creado",
-            id = idGenerado,
-            inquilino = inquilino
-        });
+        return View(inquilino);
     }
 
     [HttpPatch]
@@ -68,11 +87,5 @@ public class InquilinoController : Controller
         });
     }
     
-    [HttpGet]
-    public IActionResult Index()
-    {
-        var inquilinos = _repositorio.ObtenerTodos();
-        return Ok(inquilinos);
-    }
 }
 

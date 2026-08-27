@@ -1,0 +1,56 @@
+@model IEnumerable<Inmobiliaria.Models.Inquilino>
+
+@{
+	ViewData["Title"] = "Index";
+	//Operadores ?? ?. ?: 
+	//https://learn.microsoft.com/es-mx/dotnet/csharp/language-reference/operators/null-coalescing-operator
+	//https://learn.microsoft.com/es-mx/dotnet/csharp/language-reference/operators/conditional-operator
+	//https://learn.microsoft.com/es-mx/dotnet/csharp/language-reference/operators/member-access-operators#null-conditional-operators--and-
+	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
+	Inquilino iDatos = (Inquilino)ViewBag.Datos;
+	string saludo = (string)ViewBag.Otro;
+}
+
+<h1>Listado de Inquilinos (@cantidad)</h1>
+<h2>@saludo</h2>
+<p>
+	@if (iDatos.Id_inquilino > 0)
+	{
+		<a asp-action="Edit">Editar inquilino</a>
+	}
+	else
+	{
+		<a asp-action="Create">Crear nuevo inquilino</a>
+	}
+</p>
+<table class="table">
+	<thead>
+		<tr>
+			<th>
+				@Html.DisplayNameFor(model => model.Id_inquilino)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Nombre)
+			</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>
+					@Html.DisplayFor(modelItem => item.Id_inquilino)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Nombre)
+				</td>
+				<td>
+					@Html.ActionLink("Editar", "Edit", new { id = item.Id_inquilino }) |
+					@Html.ActionLink("Detalles", "Details", new { id = item.Id_inquilino }) |
+					@Html.ActionLink("Eliminar", "Delete", new { id = item.Id_inquilino })
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
