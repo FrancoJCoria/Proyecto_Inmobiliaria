@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Proyecto_Inmobiliaria.Models;
+using Inmobiliaria.Models;
 
-namespace Proyecto_Inmobiliaria.Controllers;
+namespace Inmobiliaria.Controllers;
 
 public class InquilinoController : Controller
 {
