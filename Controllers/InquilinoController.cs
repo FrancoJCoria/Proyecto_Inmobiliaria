@@ -47,29 +47,41 @@ public class InquilinoController : Controller
         return View(inquilino);
     }
 
+
+
     [HttpPatch]
-    public IActionResult Delete([FromBody] Inquilino inquilino)
+    [ValidateAntiForgeryToken]
+    public IActionResult Delete( int id)
     {
-        if(inquilino == null || string.IsNullOrEmpty(inquilino.Dni))
+        if(id <= 0)
         {
-            return BadRequest(new { error = "Se requiere el DNI para dar de baja al inquilino." });
+            return BadRequest(new { error = "Se requiere un ID válido para dar de baja al inquilino." });
         }
-        int filasAfectadas = _repositorio.Baja(inquilino);
+        int filasAfectadas = _repositorio.Baja(id);
         if(filasAfectadas == 0)
         {
-            return NotFound(new { error = $"No se encontró ningún inquilino con el DNI {inquilino.Dni}." });
+            return NotFound(new { error = $"No se encontró ningún inquilino con el ID {id}." });
         }
-        return Ok(new
+        return RedirectToAction("Index");
+    }
+
+    [HttpGet]
+    public IActionResult Edit(int id)
+    {
+        var inquilinos = _repositorio.ObtenerTodos();
+        var inquilino = inquilinos.FirstOrDefault(i => i.Id_inquilino == id);
+        if (inquilino == null)
         {
-            mensaje = "Inquilino dado de baja con éxito",
-            filasAfectadas = filasAfectadas
-        });
+            return NotFound();
+        }
+        return View(inquilino);
     }
 
     [HttpPut]
-    public IActionResult Edit(int id, [FromBody] Inquilino inquilino)
+    [ValidateAntiForgeryToken]
+    public IActionResult Edit(int id, Inquilino inquilino)
     {
-        if(inquilino == null)
+        if(inquilino == null || !ModelState.IsValid) 
         {
             return BadRequest(new { error = "Los datos del inquilino son requeridos." });
         }
@@ -80,11 +92,7 @@ public class InquilinoController : Controller
         {
             return NotFound(new { error = $"No se encontró ningún inquilino con el ID {id}." });
         }
-        return Ok(new
-        {
-            mensaje = "Inquilino modificado con éxito",
-            filasAfectadas = filasAfectadas
-        });
+        return RedirectToAction("Index");
     }
     
 }
