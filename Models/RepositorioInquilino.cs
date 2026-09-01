@@ -23,15 +23,14 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
         return idGenerado;
     }
 
-    public int Baja(Inquilino inquilino)
+    public int Baja(int id)
     {
         int filasAfectadas = 0;
         using var connection = new MySqlConnection(connectionString);
-        string consultaSql = @"UPDATE Inquilino SET estado = @estado WHERE dni = @dni";
+        string consultaSql = @"UPDATE Inquilino SET estado = @estado WHERE id_inquilino = @id";
         using var command = new MySqlCommand(consultaSql, connection);
-        BindId(command, inquilino);
-        command.Parameters.AddWithValue("@estado", inquilino.Estado);
-        command.Parameters.AddWithValue("@dni", inquilino.Dni);
+        command.Parameters.AddWithValue("@id", id);
+        command.Parameters.AddWithValue("@estado", false);
         connection.Open();
         filasAfectadas = command.ExecuteNonQuery();
         return filasAfectadas;
