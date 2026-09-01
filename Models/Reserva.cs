@@ -9,16 +9,16 @@ public class Reserva()
     public int Id_reserva{get; set;}
 
     [Required]
-    public DateFormat Fecha_inicio{get; set;}
+    public DateTime Fecha_inicio{get; set;}
 
     [Required]
-    public DateFormat Fecha_fin{get; set;}
+    public DateTime Fecha_fin{get; set;}
 
      [Required]
-    public DateFormat Fecha_fin_efectiva{get; set;}
+    public DateTime Fecha_fin_efectiva{get; set;}
 
      [Required]
-    public DateFormat Monto_diario{get; set;}
+    public decimal Monto_diario{get; set;}
 
     [Required]
     public bool Estado{get; set;}
