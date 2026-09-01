@@ -14,7 +14,7 @@
 <h1>Listado de Inquilinos (@cantidad)</h1>
 <h2>@saludo</h2>
 <p>
-	@if (iDatos.Id_inquilino > 0)
+	@if (iDatos?.Id_inquilino > 0)
 	{
 		<a asp-action="Edit">Editar inquilino</a>
 	}
