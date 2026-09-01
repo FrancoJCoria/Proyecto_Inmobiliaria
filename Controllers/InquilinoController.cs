@@ -5,7 +5,7 @@ namespace Inmobiliaria.Controllers;
 
 public class InquilinoController : Controller
 {
-    public readonly IRepositorioInquilino _repositorio;
+    private readonly IRepositorioInquilino _repositorio;
 
     public InquilinoController(IRepositorioInquilino repositorio)
     {
@@ -13,11 +13,11 @@ public class InquilinoController : Controller
     }
 
 
+     // GET:  
     public IActionResult Index()
     {
         var inquilinos = _repositorio.ObtenerTodos();
         ViewData["Cantidad"] = inquilinos.Count();
-        ViewBag.Datos = new Inquilino { Id_inquilino = 1, Nombre = "Juan Pérez", Dni = "12345678" };
         ViewBag.Otro = "Bienvenido al listado de inquilinos";
         return View(inquilinos);
     }
