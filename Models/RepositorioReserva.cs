@@ -18,9 +18,9 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
             using var conexion = new MySqlConnection(connectionString);
 
             //consultasql: inserta los datos y el last insert, agarra y devuelve el id generado
-            string consultaSql = @"INSER INTO Reserva(fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario, estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador)
+            string consultaSql = @"INSERT INTO Reserva(fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario, estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador)
             VALUES (@fecha_inicio, @fecha_fin, @fecha_fin_efectiva, @monto_diario, @estado, @id_inmueble, @id_inquilino, @id_usuario_creador, @id_usuario_finalizador)
-            SELECT LAST_INSER_ID();";
+            SELECT LAST_INSERT_ID();";
 
             //comando para la consulta y conexion
             using var comando = new MySqlCommand(consultaSql, conexion);
