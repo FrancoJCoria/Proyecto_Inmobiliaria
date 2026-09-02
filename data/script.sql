@@ -53,7 +53,7 @@ CREATE TABLE `Reserva` (
   `fecha_fin` date,
   `fecha_fin_efectiva` date,
   `monto_diario` decimal,
-  `estado` varchar(255),
+  `estado` boolean,
   `id_inmueble` int,
   `id_inquilino` int,
   `id_usuario_creador` int,
@@ -68,7 +68,7 @@ CREATE TABLE `Usuario` (
   `apellido` varchar(255),
   `avatar` varchar(255),
   `rol` varchar(255),
-  `estado` varchar(255)
+  `estado` boolean
 );
 
 CREATE TABLE `Inquilino` (

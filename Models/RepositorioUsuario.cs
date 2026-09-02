@@ -217,4 +217,33 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
 
         return user;
     }
+
+    public IList<Usuario> ObtenerTodos()
+    {
+        var lista = new List<Usuario>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT id_usuario, email, clave, nombre, apellido, avatar, rol, estado
+        FROM Usuario";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+
+        while (lector.Read())
+        {
+            lista.Add(new Usuario
+            {
+                Id_usuario = lector.GetInt32("id_usuario"),
+                Email = lector.GetString("email"),
+                Clave = lector.GetString("clave"),
+                Nombre = lector.GetString("nombre"),
+                Apellido = lector.GetString("apellido"),
+                Avatar = lector.IsDBNull(lector.GetOrdinal("avatar")) ? "" : lector.GetString("avatar"),
+                Rol = lector.GetString("rol"),
+                Estado = lector.GetBoolean("estado")
+            });
+        }
+        return lista;
+    }
 }

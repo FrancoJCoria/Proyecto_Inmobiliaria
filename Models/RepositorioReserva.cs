@@ -19,7 +19,7 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
 
             //consultasql: inserta los datos y el last insert, agarra y devuelve el id generado
             string consultaSql = @"INSERT INTO Reserva(fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario, estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador)
-            VALUES (@fecha_inicio, @fecha_fin, @fecha_fin_efectiva, @monto_diario, @estado, @id_inmueble, @id_inquilino, @id_usuario_creador, @id_usuario_finalizador)
+            VALUES (@fecha_inicio, @fecha_fin, @fecha_fin_efectiva, @monto_diario, @estado, @id_inmueble, @id_inquilino, @id_usuario_creador, @id_usuario_finalizador);
             SELECT LAST_INSERT_ID();";
 
             //comando para la consulta y conexion
@@ -28,13 +28,13 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
             //Asignacionde todos los parametros requeridos
             comando.Parameters.AddWithValue("@fecha_inicio", reservaParams.Fecha_inicio);
             comando.Parameters.AddWithValue("@fecha_fin", reservaParams.Fecha_fin);
-            comando.Parameters.AddWithValue("@fecha_fin_efectiva", reservaParams.Fecha_fin_efectiva);
+            comando.Parameters.AddWithValue("@fecha_fin_efectiva", reservaParams.Fecha_fin_efectiva == DateTime.MinValue ? (object)DBNull.Value : reservaParams.Fecha_fin_efectiva);
             comando.Parameters.AddWithValue("@monto_diario", reservaParams.Monto_diario);
             comando.Parameters.AddWithValue("@estado", reservaParams.Estado);
             comando.Parameters.AddWithValue("@id_inmueble", reservaParams.Id_inmueble);
             comando.Parameters.AddWithValue("@id_inquilino", reservaParams.Id_inquilino);
             comando.Parameters.AddWithValue("@id_usuario_creador", reservaParams.Id_usuario_creador);
-            comando.Parameters.AddWithValue("@id_usuario_finalizador", reservaParams.Id_usuario_finalizador);
+            comando.Parameters.AddWithValue("@id_usuario_finalizador", reservaParams.Id_usuario_finalizador == 0 ? (object)DBNull.Value : reservaParams.Id_usuario_finalizador);
 
             conexion.Open();
             
@@ -110,13 +110,13 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
             comando.Parameters.AddWithValue("@id_reserva", reservaParams.Id_reserva);
             comando.Parameters.AddWithValue("@fecha_inicio", reservaParams.Fecha_inicio);
             comando.Parameters.AddWithValue("@fecha_fin", reservaParams.Fecha_fin);
-            comando.Parameters.AddWithValue("@fecha_fin_efectiva", reservaParams.Fecha_fin_efectiva);
+            comando.Parameters.AddWithValue("@fecha_fin_efectiva", reservaParams.Fecha_fin_efectiva == DateTime.MinValue ? (object)DBNull.Value : reservaParams.Fecha_fin_efectiva);
             comando.Parameters.AddWithValue("@monto_diario", reservaParams.Monto_diario);
             comando.Parameters.AddWithValue("@estado", reservaParams.Estado);
             comando.Parameters.AddWithValue("@id_inmueble", reservaParams.Id_inmueble);
             comando.Parameters.AddWithValue("@id_inquilino", reservaParams.Id_inquilino);
             comando.Parameters.AddWithValue("@id_usuario_creador", reservaParams.Id_usuario_creador);
-            comando.Parameters.AddWithValue("@id_usuario_finalizador", reservaParams.Id_usuario_finalizador);
+            comando.Parameters.AddWithValue("@id_usuario_finalizador", reservaParams.Id_usuario_finalizador == 0 ? (object)DBNull.Value : reservaParams.Id_usuario_finalizador);
 
             conexion.Open();
 
@@ -130,5 +130,66 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
             Console.WriteLine(ex.Message);
             return 0;
         }
+    }
+
+    public IList<Reserva> ObtenerTodos()
+    {
+        var lista = new List<Reserva>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario,
+        estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador FROM Reserva";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+
+        while (lector.Read())
+        {
+            lista.Add(LeerReserva(lector));
+        }
+        return lista;
+    }
+
+    public Reserva? ObtenerPorId(int id)
+    {
+        Reserva? reserva = null;
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario,
+        estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador
+        FROM Reserva WHERE id_reserva = @id_reserva";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@id_reserva", id);
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+
+        if (lector.Read())
+        {
+            reserva = LeerReserva(lector);
+        }
+        return reserva;
+    }
+
+    private static Reserva LeerReserva(MySqlDataReader lector)
+    {
+        return new Reserva
+        {
+            Id_reserva = lector.GetInt32("id_reserva"),
+            Fecha_inicio = lector.GetDateTime("fecha_inicio"),
+            Fecha_fin = lector.GetDateTime("fecha_fin"),
+            Fecha_fin_efectiva = lector.IsDBNull(lector.GetOrdinal("fecha_fin_efectiva"))
+                ? DateTime.MinValue
+                : lector.GetDateTime("fecha_fin_efectiva"),
+            Monto_diario = lector.GetDecimal("monto_diario"),
+            Estado = lector.GetBoolean("estado"),
+            Id_inmueble = lector.GetInt32("id_inmueble"),
+            Id_inquilino = lector.GetInt32("id_inquilino"),
+            Id_usuario_creador = lector.GetInt32("id_usuario_creador"),
+            Id_usuario_finalizador = lector.IsDBNull(lector.GetOrdinal("id_usuario_finalizador"))
+                ? 0
+                : lector.GetInt32("id_usuario_finalizador")
+        };
     }
 }
