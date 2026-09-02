@@ -20,7 +20,7 @@ public class Usuario
     public string Apellido {get; set; }
 
 
-    public string Avatar { get; set; }
+    public string? Avatar { get; set; }
 
     [Required(ErrorMessage = "El rol es obligatorio")]
     public string Rol { get; set; }

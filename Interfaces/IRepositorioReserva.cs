@@ -6,4 +6,8 @@ public interface IRepositorioReserva
     int Baja(Reserva r);
 
     int Modificacion(Reserva r);
+
+    IList<Reserva> ObtenerTodos();
+
+    Reserva? ObtenerPorId(int id);
 }
