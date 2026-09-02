@@ -12,8 +12,6 @@ public class InquilinoController : Controller
         _repositorio = repositorio;
     }
 
-
-     // GET:  
     public IActionResult Index()
     {
         var inquilinos = _repositorio.ObtenerTodos();
@@ -23,46 +21,37 @@ public class InquilinoController : Controller
     }
 
     [HttpGet]
+    public IActionResult Details(int id)
+    {
+        var inquilinos = _repositorio.ObtenerTodos();
+        var inquilino = inquilinos.FirstOrDefault(i => i.Id_inquilino == id);
+        if (inquilino == null)
+        {
+            return NotFound();
+        }
+        return View(inquilino);
+    }
+
+    [HttpGet]
     public IActionResult Create()
-		{
-			return View();
-		}
+    {
+        return View();
+    }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Create(IFormCollection form, Inquilino inquilino)
+    public IActionResult Create(Inquilino inquilino)
     {
-        if (ModelState.IsValid) // Pregunta si el modelo es valido
+        if (ModelState.IsValid)
         {
             int idGenerado = _repositorio.Alta(inquilino);
             if (idGenerado > 0)
             {
                 return RedirectToAction("Index");
             }
-            else
-            {
-                ModelState.AddModelError("", "No se pudo crear el inquilino.");
-            }
+            ModelState.AddModelError("", "No se pudo crear el inquilino.");
         }
         return View(inquilino);
-    }
-
-
-
-    [HttpPatch]
-    [ValidateAntiForgeryToken]
-    public IActionResult Delete( int id)
-    {
-        if(id <= 0)
-        {
-            return BadRequest(new { error = "Se requiere un ID válido para dar de baja al inquilino." });
-        }
-        int filasAfectadas = _repositorio.Baja(id);
-        if(filasAfectadas == 0)
-        {
-            return NotFound(new { error = $"No se encontró ningún inquilino con el ID {id}." });
-        }
-        return RedirectToAction("Index");
     }
 
     [HttpGet]
@@ -77,23 +66,52 @@ public class InquilinoController : Controller
         return View(inquilino);
     }
 
-    [HttpPut]
+    [HttpPost]
     [ValidateAntiForgeryToken]
     public IActionResult Edit(int id, Inquilino inquilino)
     {
-        if(inquilino == null || !ModelState.IsValid) 
+        if (!ModelState.IsValid)
         {
-            return BadRequest(new { error = "Los datos del inquilino son requeridos." });
+            return View(inquilino);
         }
 
         inquilino.Id_inquilino = id;
         int filasAfectadas = _repositorio.Modificacion(inquilino);
-        if(filasAfectadas == 0)
+        if (filasAfectadas == 0)
         {
-            return NotFound(new { error = $"No se encontró ningún inquilino con el ID {id}." });
+            ModelState.AddModelError("", "No se pudo modificar el inquilino.");
+            return View(inquilino);
         }
         return RedirectToAction("Index");
     }
-    
-}
 
+    [HttpGet]
+    public IActionResult Delete(int id)
+    {
+        var inquilinos = _repositorio.ObtenerTodos();
+        var inquilino = inquilinos.FirstOrDefault(i => i.Id_inquilino == id);
+        if (inquilino == null)
+        {
+            return NotFound();
+        }
+        return View(inquilino);
+    }
+
+    [HttpPost]
+    [ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public IActionResult DeleteConfirmado(int id)
+    {
+        if (id <= 0)
+        {
+            return NotFound();
+        }
+
+        int filasAfectadas = _repositorio.Baja(id);
+        if (filasAfectadas == 0)
+        {
+            return NotFound();
+        }
+        return RedirectToAction("Index");
+    }
+}
