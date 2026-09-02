@@ -1,8 +1,65 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+	ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="text-center mb-4">
+	<h1 class="display-5">Inmobiliaria</h1>
+	<p class="lead">Gestión de alquileres temporarios</p>
+</div>
+
+<div class="row g-3">
+	<div class="col-md-3">
+		<div class="card h-100">
+			<div class="card-body text-center">
+				<h5 class="card-title">Propietarios</h5>
+				<p class="card-text">Dueños de los inmuebles.</p>
+				<a asp-controller="Propietario" asp-action="Index" class="btn btn-primary">Ver</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card h-100">
+			<div class="card-body text-center">
+				<h5 class="card-title">Inquilinos</h5>
+				<p class="card-text">Personas que alquilan.</p>
+				<a asp-controller="Inquilino" asp-action="Index" class="btn btn-primary">Ver</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card h-100">
+			<div class="card-body text-center">
+				<h5 class="card-title">Inmuebles</h5>
+				<p class="card-text">Propiedades en alquiler.</p>
+				<a asp-controller="Inmueble" asp-action="Index" class="btn btn-primary">Ver</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card h-100">
+			<div class="card-body text-center">
+				<h5 class="card-title">Reservas</h5>
+				<p class="card-text">Alquileres temporarios.</p>
+				<a asp-controller="Reserva" asp-action="Index" class="btn btn-primary">Ver</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card h-100">
+			<div class="card-body text-center">
+				<h5 class="card-title">Usuarios</h5>
+				<p class="card-text">Empleados del sistema.</p>
+				<a asp-controller="Usuario" asp-action="Index" class="btn btn-primary">Ver</a>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3">
+		<div class="card h-100">
+			<div class="card-body text-center">
+				<h5 class="card-title">Tipos de Inmueble</h5>
+				<p class="card-text">Casa, departamento, cabaña.</p>
+				<a asp-controller="TipoInmueble" asp-action="Index" class="btn btn-primary">Ver</a>
+			</div>
+		</div>
+	</div>
 </div>
