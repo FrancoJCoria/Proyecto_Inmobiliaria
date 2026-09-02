@@ -5,17 +5,30 @@ namespace Inmobiliaria.Models;
 public class Inmueble
 {
     public int Id_inmueble { get; set; }
-    public string direccion {get; set; } = "";
-    public int cupo {get; set; }
-    public decimal precio_dia {get; set; }
-    public decimal porcentaje_reserva {get; set; }
-    public bool disponible {get; set; }
-    public string portada {get; set; } = "";
-    public int id_propietario {get; set; }
-    public int id_tipo {get; set; }
-    public string estado {get; set; } = "";
-     public override string ToString()
-    {
-        return $"(Id_inmueble: {Id_inmueble}), Direccion: {direccion}, Cupo: {cupo}, Precio por dia: {precio_dia}, Porcentaje de reserva: {porcentaje_reserva}, Disponible: {disponible}, Portada: {portada}, Id_propietario: {id_propietario}, Id_tipo: {id_tipo}, Estado: {estado}";
-    }
-    }
+
+    [Required(ErrorMessage = "La direccion es obligatoria")]
+    public string Direccion { get; set; } = "";
+
+    [Range(1, 100, ErrorMessage = "El cupo debe ser entre 1 y 100 personas")]
+    public int Cupo { get; set; }
+
+    [Range(1, 99999999, ErrorMessage = "El precio por dia debe ser mayor a cero")]
+    public decimal Precio_dia { get; set; }
+
+    [Range(0, 100, ErrorMessage = "El porcentaje de reserva debe ser entre 0 y 100")]
+    public decimal Porcentaje_reserva { get; set; }
+
+    public bool Disponible { get; set; }
+
+    public string? Portada { get; set; }
+
+    [Range(1, int.MaxValue, ErrorMessage = "Hay que elegir un propietario")]
+    public int Id_propietario { get; set; }
+
+    [Range(1, int.MaxValue, ErrorMessage = "Hay que elegir un tipo de inmueble")]
+    public int Id_tipo { get; set; }
+
+    public string Estado { get; set; } = "Activo";
+
+    public override string ToString() => $"{Direccion} (cupo {Cupo})";
+}
