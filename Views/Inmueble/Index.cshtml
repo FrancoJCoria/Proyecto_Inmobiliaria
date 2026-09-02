@@ -1,0 +1,64 @@
+@model IEnumerable<Inmobiliaria.Models.Inmueble>
+
+@{
+	ViewData["Title"] = "Inmuebles";
+	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
+	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
+	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
+}
+
+<h1>Listado de Inmuebles (@cantidad)</h1>
+
+<p>
+	<a asp-action="Create" class="btn btn-primary">Crear nuevo inmueble</a>
+</p>
+
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>@Html.DisplayNameFor(model => model.Id_inmueble)</th>
+			<th>@Html.DisplayNameFor(model => model.Direccion)</th>
+			<th>Tipo</th>
+			<th>@Html.DisplayNameFor(model => model.Cupo)</th>
+			<th>Precio por dia</th>
+			<th>Propietario</th>
+			<th>Disponible</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			var duenio = propietarios?.FirstOrDefault(p => p.Id_propietario == item.Id_propietario);
+			var tipo = tipos?.FirstOrDefault(t => t.Id_tipo == item.Id_tipo);
+			<tr>
+				<td>@item.Id_inmueble</td>
+				<td>@item.Direccion</td>
+				<td>@(tipo != null ? tipo.Nombre : item.Id_tipo.ToString())</td>
+				<td>@item.Cupo</td>
+				<td>@item.Precio_dia.ToString("C")</td>
+				<td>@(duenio != null ? duenio.Apellido + ", " + duenio.Nombre : item.Id_propietario.ToString())</td>
+				<td>
+					@if (item.Disponible)
+					{
+						<span class="badge bg-success">Si</span>
+					}
+					else
+					{
+						<span class="badge bg-secondary">No</span>
+					}
+				</td>
+				<td>
+					<a asp-action="Details" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-info">Detalles</a>
+					<a asp-action="Edit" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-warning">Editar</a>
+					<a asp-action="Delete" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-danger">Eliminar</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+@if (!Model.Any())
+{
+	<div class="alert alert-info">No hay inmuebles cargados todavía.</div>
+}

@@ -1,0 +1,64 @@
+@model IEnumerable<Inmobiliaria.Reserva>
+
+@{
+	ViewData["Title"] = "Reservas";
+	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
+	var inmuebles = ViewBag.Inmuebles as IList<Inmobiliaria.Models.Inmueble>;
+	var inquilinos = ViewBag.Inquilinos as IList<Inmobiliaria.Models.Inquilino>;
+}
+
+<h1>Listado de Reservas (@cantidad)</h1>
+
+<p>
+	<a asp-action="Create" class="btn btn-primary">Crear nueva reserva</a>
+</p>
+
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>Nro</th>
+			<th>Desde</th>
+			<th>Hasta</th>
+			<th>Inmueble</th>
+			<th>Inquilino</th>
+			<th>Monto diario</th>
+			<th>Estado</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			var inm = inmuebles?.FirstOrDefault(m => m.Id_inmueble == item.Id_inmueble);
+			var inq = inquilinos?.FirstOrDefault(q => q.Id_inquilino == item.Id_inquilino);
+			<tr>
+				<td>@item.Id_reserva</td>
+				<td>@item.Fecha_inicio.ToString("dd/MM/yyyy")</td>
+				<td>@item.Fecha_fin.ToString("dd/MM/yyyy")</td>
+				<td>@(inm != null ? inm.Direccion : item.Id_inmueble.ToString())</td>
+				<td>@(inq != null ? inq.Apellido + ", " + inq.Nombre : item.Id_inquilino.ToString())</td>
+				<td>@item.Monto_diario.ToString("C")</td>
+				<td>
+					@if (item.Estado)
+					{
+						<span class="badge bg-success">Activa</span>
+					}
+					else
+					{
+						<span class="badge bg-secondary">Anulada</span>
+					}
+				</td>
+				<td>
+					<a asp-action="Details" asp-route-id="@item.Id_reserva" class="btn btn-sm btn-info">Detalles</a>
+					<a asp-action="Edit" asp-route-id="@item.Id_reserva" class="btn btn-sm btn-warning">Editar</a>
+					<a asp-action="Delete" asp-route-id="@item.Id_reserva" class="btn btn-sm btn-danger">Anular</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+@if (!Model.Any())
+{
+	<div class="alert alert-info">No hay reservas cargadas todavía.</div>
+}

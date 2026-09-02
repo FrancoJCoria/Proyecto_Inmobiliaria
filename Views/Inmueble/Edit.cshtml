@@ -1,0 +1,83 @@
+@model Inmobiliaria.Models.Inmueble
+
+@{
+	ViewData["Title"] = "Editar Inmueble";
+	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
+	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
+}
+
+<h1>Editar Inmueble</h1>
+
+<div class="row">
+	<div class="col-md-6">
+		<form asp-action="Edit" method="post">
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+			<input type="hidden" name="id" value="@Model.Id_inmueble" />
+			<input type="hidden" asp-for="Id_inmueble" />
+			<input type="hidden" asp-for="Estado" />
+			<div class="mb-3">
+				<label asp-for="Direccion" class="form-label">Direccion</label>
+				<input asp-for="Direccion" class="form-control" />
+				<span asp-validation-for="Direccion" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Id_tipo" class="form-label">Tipo de inmueble</label>
+				<select asp-for="Id_tipo" class="form-select">
+					<option value="0">-- Elegir tipo --</option>
+					@if (tipos != null)
+					{
+						@foreach (var t in tipos)
+						{
+							<option value="@t.Id_tipo">@t.Nombre</option>
+						}
+					}
+				</select>
+				<span asp-validation-for="Id_tipo" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Id_propietario" class="form-label">Propietario</label>
+				<select asp-for="Id_propietario" class="form-select">
+					<option value="0">-- Elegir propietario --</option>
+					@if (propietarios != null)
+					{
+						@foreach (var p in propietarios)
+						{
+							<option value="@p.Id_propietario">@p.Apellido, @p.Nombre (@p.Dni)</option>
+						}
+					}
+				</select>
+				<span asp-validation-for="Id_propietario" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Cupo" class="form-label">Cupo de personas</label>
+				<input asp-for="Cupo" type="number" class="form-control" />
+				<span asp-validation-for="Cupo" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Precio_dia" class="form-label">Precio por dia</label>
+				<input asp-for="Precio_dia" type="number" step="0.01" class="form-control" />
+				<span asp-validation-for="Precio_dia" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Porcentaje_reserva" class="form-label">Porcentaje de reserva</label>
+				<input asp-for="Porcentaje_reserva" type="number" step="0.01" class="form-control" />
+				<span asp-validation-for="Porcentaje_reserva" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Portada" class="form-label">Foto de portada</label>
+				<input asp-for="Portada" class="form-control" placeholder="url de la imagen" />
+				<span asp-validation-for="Portada" class="text-danger"></span>
+			</div>
+			<div class="mb-3 form-check">
+				<input asp-for="Disponible" class="form-check-input" />
+				<label asp-for="Disponible" class="form-check-label">Disponible para alquilar</label>
+			</div>
+			<button type="submit" class="btn btn-primary">Guardar</button>
+			<a asp-action="Index" class="btn btn-secondary">Volver</a>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}

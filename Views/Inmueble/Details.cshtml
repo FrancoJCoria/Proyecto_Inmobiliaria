@@ -1,0 +1,46 @@
+@model Inmobiliaria.Models.Inmueble
+
+@{
+	ViewData["Title"] = "Detalles del Inmueble";
+	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
+	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
+	var duenio = propietarios?.FirstOrDefault(p => p.Id_propietario == Model.Id_propietario);
+	var tipo = tipos?.FirstOrDefault(t => t.Id_tipo == Model.Id_tipo);
+}
+
+<h1>Detalles del Inmueble</h1>
+
+<dl class="row">
+	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Id_inmueble)</dt>
+	<dd class="col-sm-8">@Model.Id_inmueble</dd>
+	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Direccion)</dt>
+	<dd class="col-sm-8">@Model.Direccion</dd>
+	<dt class="col-sm-4">Tipo de inmueble</dt>
+	<dd class="col-sm-8">@(tipo != null ? tipo.Nombre : Model.Id_tipo.ToString())</dd>
+	<dt class="col-sm-4">Propietario</dt>
+	<dd class="col-sm-8">@(duenio != null ? duenio.Apellido + ", " + duenio.Nombre : Model.Id_propietario.ToString())</dd>
+	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Cupo)</dt>
+	<dd class="col-sm-8">@Model.Cupo personas</dd>
+	<dt class="col-sm-4">Precio por dia</dt>
+	<dd class="col-sm-8">@Model.Precio_dia.ToString("C")</dd>
+	<dt class="col-sm-4">Porcentaje de reserva</dt>
+	<dd class="col-sm-8">@Model.Porcentaje_reserva %</dd>
+	<dt class="col-sm-4">Disponible</dt>
+	<dd class="col-sm-8">
+		@if (Model.Disponible)
+		{
+			<span class="badge bg-success">Si</span>
+		}
+		else
+		{
+			<span class="badge bg-secondary">No</span>
+		}
+	</dd>
+	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Portada)</dt>
+	<dd class="col-sm-8">@Model.Portada</dd>
+	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Estado)</dt>
+	<dd class="col-sm-8">@Model.Estado</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id_inmueble" class="btn btn-primary">Editar</a>
+<a asp-action="Index" class="btn btn-secondary">Volver</a>
