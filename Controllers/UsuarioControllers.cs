@@ -12,58 +12,113 @@ public class UsuarioController : Controller
         _repositorio = repositorio;
     }
 
-    [HttpPost]
-    public IActionResult Create([FromBody] Usuario user)
+    public IActionResult Index()
     {
-        if (user == null)
-            return BadRequest("Los datos del Usuario son nulos");
+        var usuarios = _repositorio.ObtenerTodos();
+        ViewData["Cantidad"] = usuarios.Count();
+        return View(usuarios);
+    }
 
-        //Data Annotations-> en vez de recorrer cada campo, se decoran las propiedades de la clase, es una solucion nativa de APS.NET
-        //asi seria la sitaxis en la clase (models.usuario) [Required(ErrorMessage = "El email es obligatorio")]
-        //ASP.NET valida automaticamente las reglas y almacena los errores en ModelState, el json regresa la lista de los campos que fallaron
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        try
+    [HttpGet]
+    public IActionResult Details(int id)
+    {
+        var usuario = _repositorio.ObtenerPorId(id);
+        if (usuario == null)
         {
-            user.Estado = true; 
-            var idGenerado = _repositorio.Alta(user);
+            return NotFound();
+        }
+        return View(usuario);
+    }
 
-            return Ok(new
-            {
-                mensaje = "Usuario creado exitosamente",
-                id = idGenerado,
-                usuario = user
-            });
-        }
-        catch (Exception e)
-        {
-            return StatusCode(500, new { error = "Error al crear Usuario", detalle = e.Message });
-        }
+    [HttpGet]
+    public IActionResult Create()
+    {
+        return View();
     }
 
     [HttpPost]
-    public IActionResult Delete([FromBody] Usuario user)
+    [ValidateAntiForgeryToken]
+    public IActionResult Create(Usuario usuario)
     {
-        if (user == null)
-            return BadRequest("Los datos ingresados son nulos");
-
-        if (user.Id_usuario <= 0)
-            return BadRequest("Es necesario un ID de usuario válido");
-
-        try
+        if (!ModelState.IsValid)
         {
-            user.Estado = false; 
-            int filas = _repositorio.Baja(user);
-
-            if (filas == 0)
-                return NotFound(new { mensaje = "Usuario no encontrado o no se pudo dar de baja" });
-
-            return Ok(new { mensaje = "Usuario dado de baja exitosamente" });
+            return View(usuario);
         }
-        catch (Exception e)
+
+        if (_repositorio.ObetenerPorEmail(usuario.Email) != null)
         {
-            return StatusCode(500, new { error = "Error al eliminar el usuario", detalle = e.Message });
+            ModelState.AddModelError("Email", "Ya existe un usuario con ese email.");
+            return View(usuario);
         }
+
+        usuario.Estado = true;
+        int idGenerado = _repositorio.Alta(usuario);
+        if (idGenerado == 0)
+        {
+            ModelState.AddModelError("", "No se pudo crear el usuario.");
+            return View(usuario);
+        }
+        return RedirectToAction("Index");
+    }
+
+    [HttpGet]
+    public IActionResult Edit(int id)
+    {
+        var usuario = _repositorio.ObtenerPorId(id);
+        if (usuario == null)
+        {
+            return NotFound();
+        }
+        return View(usuario);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Edit(int id, Usuario usuario)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(usuario);
+        }
+
+        usuario.Id_usuario = id;
+        int filasAfectadas = _repositorio.Modificacion(usuario);
+        if (filasAfectadas == 0)
+        {
+            ModelState.AddModelError("", "No se pudo modificar el usuario. Puede estar dado de baja.");
+            return View(usuario);
+        }
+        return RedirectToAction("Index");
+    }
+
+    [HttpGet]
+    public IActionResult Delete(int id)
+    {
+        var usuario = _repositorio.ObtenerPorId(id);
+        if (usuario == null)
+        {
+            return NotFound();
+        }
+        return View(usuario);
+    }
+
+    [HttpPost]
+    [ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public IActionResult DeleteConfirmado(int id)
+    {
+        var usuario = _repositorio.ObtenerPorId(id);
+        if (usuario == null)
+        {
+            return NotFound();
+        }
+
+        usuario.Estado = false;
+        int filasAfectadas = _repositorio.Baja(usuario);
+        if (filasAfectadas == 0)
+        {
+            return NotFound();
+        }
+        return RedirectToAction("Index");
     }
 }
