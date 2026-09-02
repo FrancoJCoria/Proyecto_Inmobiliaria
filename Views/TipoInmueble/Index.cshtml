@@ -1,0 +1,40 @@
+@model IEnumerable<Inmobiliaria.Models.TipoInmueble>
+
+@{
+	ViewData["Title"] = "Tipos de Inmueble";
+	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
+}
+
+<h1>Tipos de Inmueble (@cantidad)</h1>
+
+<p>
+	<a asp-action="Create" class="btn btn-primary">Crear nuevo tipo</a>
+</p>
+
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>@Html.DisplayNameFor(model => model.Id_tipo)</th>
+			<th>@Html.DisplayNameFor(model => model.Nombre)</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>@item.Id_tipo</td>
+				<td>@item.Nombre</td>
+				<td>
+					<a asp-action="Edit" asp-route-id="@item.Id_tipo" class="btn btn-sm btn-warning">Editar</a>
+					<a asp-action="Delete" asp-route-id="@item.Id_tipo" class="btn btn-sm btn-danger">Eliminar</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+@if (!Model.Any())
+{
+	<div class="alert alert-info">No hay tipos de inmueble cargados todavía.</div>
+}

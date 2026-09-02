@@ -1,0 +1,26 @@
+@model Inmobiliaria.Models.Usuario
+
+@{
+	ViewData["Title"] = "Eliminar Usuario";
+}
+
+<h1>Eliminar Usuario</h1>
+
+<div class="alert alert-warning">¿Confirma que desea dar de baja este usuario?</div>
+
+<dl class="row">
+	<dt class="col-sm-3">@Html.DisplayNameFor(model => model.Email)</dt>
+	<dd class="col-sm-9">@Model.Email</dd>
+	<dt class="col-sm-3">@Html.DisplayNameFor(model => model.Nombre)</dt>
+	<dd class="col-sm-9">@Model.Nombre</dd>
+	<dt class="col-sm-3">@Html.DisplayNameFor(model => model.Apellido)</dt>
+	<dd class="col-sm-9">@Model.Apellido</dd>
+	<dt class="col-sm-3">@Html.DisplayNameFor(model => model.Rol)</dt>
+	<dd class="col-sm-9">@Model.Rol</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+	<input type="hidden" name="id" value="@Model.Id_usuario" />
+	<button type="submit" class="btn btn-danger">Dar de baja</button>
+	<a asp-action="Index" class="btn btn-secondary">Volver</a>
+</form>

@@ -1,0 +1,65 @@
+@model Inmobiliaria.Reserva
+
+@{
+	ViewData["Title"] = "Detalles de la Reserva";
+	var inmuebles = ViewBag.Inmuebles as IList<Inmobiliaria.Models.Inmueble>;
+	var inquilinos = ViewBag.Inquilinos as IList<Inmobiliaria.Models.Inquilino>;
+	var usuarios = ViewBag.Usuarios as IList<Inmobiliaria.Models.Usuario>;
+	var inm = inmuebles?.FirstOrDefault(m => m.Id_inmueble == Model.Id_inmueble);
+	var inq = inquilinos?.FirstOrDefault(q => q.Id_inquilino == Model.Id_inquilino);
+	var creador = usuarios?.FirstOrDefault(u => u.Id_usuario == Model.Id_usuario_creador);
+	var finalizador = usuarios?.FirstOrDefault(u => u.Id_usuario == Model.Id_usuario_finalizador);
+}
+
+<h1>Reserva Nro @Model.Id_reserva</h1>
+
+<dl class="row">
+	<dt class="col-sm-4">Fecha de inicio</dt>
+	<dd class="col-sm-8">@Model.Fecha_inicio.ToString("dd/MM/yyyy")</dd>
+	<dt class="col-sm-4">Fecha de fin</dt>
+	<dd class="col-sm-8">@Model.Fecha_fin.ToString("dd/MM/yyyy")</dd>
+	<dt class="col-sm-4">Fecha de fin efectiva</dt>
+	<dd class="col-sm-8">
+		@if (Model.Fecha_fin_efectiva == DateTime.MinValue)
+		{
+			<span class="text-muted">Sin finalizar</span>
+		}
+		else
+		{
+			@Model.Fecha_fin_efectiva.ToString("dd/MM/yyyy")
+		}
+	</dd>
+	<dt class="col-sm-4">Monto diario</dt>
+	<dd class="col-sm-8">@Model.Monto_diario.ToString("C")</dd>
+	<dt class="col-sm-4">Inmueble</dt>
+	<dd class="col-sm-8">@(inm != null ? inm.Direccion : Model.Id_inmueble.ToString())</dd>
+	<dt class="col-sm-4">Inquilino</dt>
+	<dd class="col-sm-8">@(inq != null ? inq.Apellido + ", " + inq.Nombre : Model.Id_inquilino.ToString())</dd>
+	<dt class="col-sm-4">Usuario que la creó</dt>
+	<dd class="col-sm-8">@(creador != null ? creador.Apellido + ", " + creador.Nombre : Model.Id_usuario_creador.ToString())</dd>
+	<dt class="col-sm-4">Usuario que la finalizó</dt>
+	<dd class="col-sm-8">
+		@if (Model.Id_usuario_finalizador == 0)
+		{
+			<span class="text-muted">Sin finalizar</span>
+		}
+		else
+		{
+			@(finalizador != null ? finalizador.Apellido + ", " + finalizador.Nombre : Model.Id_usuario_finalizador.ToString())
+		}
+	</dd>
+	<dt class="col-sm-4">Estado</dt>
+	<dd class="col-sm-8">
+		@if (Model.Estado)
+		{
+			<span class="badge bg-success">Activa</span>
+		}
+		else
+		{
+			<span class="badge bg-secondary">Anulada</span>
+		}
+	</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id_reserva" class="btn btn-primary">Editar</a>
+<a asp-action="Index" class="btn btn-secondary">Volver</a>

@@ -1,0 +1,106 @@
+@model Inmobiliaria.Reserva
+
+@{
+	ViewData["Title"] = "Editar Reserva";
+	var inquilinos = ViewBag.Inquilinos as IList<Inmobiliaria.Models.Inquilino>;
+	var usuarios = ViewBag.Usuarios as IList<Inmobiliaria.Models.Usuario>;
+	var inmuebles = ViewBag.Inmuebles as IList<Inmobiliaria.Models.Inmueble>;
+}
+
+<h1>Editar Reserva Nro @Model.Id_reserva</h1>
+
+<div class="row">
+	<div class="col-md-6">
+		<form asp-action="Edit" method="post">
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+			<input type="hidden" name="id" value="@Model.Id_reserva" />
+			<input type="hidden" asp-for="Id_reserva" />
+			<div class="mb-3">
+				<label asp-for="Fecha_inicio" class="form-label">Fecha de inicio</label>
+				<input asp-for="Fecha_inicio" type="date" class="form-control" />
+				<span asp-validation-for="Fecha_inicio" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Fecha_fin" class="form-label">Fecha de fin</label>
+				<input asp-for="Fecha_fin" type="date" class="form-control" />
+				<span asp-validation-for="Fecha_fin" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Fecha_fin_efectiva" class="form-label">Fecha de fin efectiva</label>
+				<input asp-for="Fecha_fin_efectiva" type="date" class="form-control" />
+				<span asp-validation-for="Fecha_fin_efectiva" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Monto_diario" class="form-label">Monto diario</label>
+				<input asp-for="Monto_diario" type="number" step="0.01" class="form-control" />
+				<span asp-validation-for="Monto_diario" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Id_inmueble" class="form-label">Inmueble</label>
+				<select asp-for="Id_inmueble" class="form-select">
+					<option value="0">-- Elegir inmueble --</option>
+					@if (inmuebles != null)
+					{
+						@foreach (var m in inmuebles)
+						{
+							<option value="@m.Id_inmueble">@m.Direccion (cupo @m.Cupo)</option>
+						}
+					}
+				</select>
+				<span asp-validation-for="Id_inmueble" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Id_inquilino" class="form-label">Inquilino</label>
+				<select asp-for="Id_inquilino" class="form-select">
+					<option value="">-- Elegir inquilino --</option>
+					@if (inquilinos != null)
+					{
+						@foreach (var i in inquilinos)
+						{
+							<option value="@i.Id_inquilino">@i.Apellido, @i.Nombre (@i.Dni)</option>
+						}
+					}
+				</select>
+				<span asp-validation-for="Id_inquilino" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Id_usuario_creador" class="form-label">Usuario que la creó</label>
+				<select asp-for="Id_usuario_creador" class="form-select">
+					<option value="">-- Elegir usuario --</option>
+					@if (usuarios != null)
+					{
+						@foreach (var u in usuarios)
+						{
+							<option value="@u.Id_usuario">@u.Apellido, @u.Nombre</option>
+						}
+					}
+				</select>
+				<span asp-validation-for="Id_usuario_creador" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Id_usuario_finalizador" class="form-label">Usuario que la finalizó</label>
+				<select asp-for="Id_usuario_finalizador" class="form-select">
+					<option value="0">-- Sin finalizar --</option>
+					@if (usuarios != null)
+					{
+						@foreach (var u in usuarios)
+						{
+							<option value="@u.Id_usuario">@u.Apellido, @u.Nombre</option>
+						}
+					}
+				</select>
+				<span asp-validation-for="Id_usuario_finalizador" class="text-danger"></span>
+			</div>
+			<div class="mb-3 form-check">
+				<input asp-for="Estado" class="form-check-input" />
+				<label asp-for="Estado" class="form-check-label">Reserva activa</label>
+			</div>
+			<button type="submit" class="btn btn-primary">Guardar</button>
+			<a asp-action="Index" class="btn btn-secondary">Volver</a>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}
