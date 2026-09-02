@@ -9,6 +9,7 @@ Sistema web para la gestión de alquileres temporarios de una agencia inmobiliar
 * **Franco Javier Coria** - *[francojaviercoria2@gmail.com](mailto:francojaviercoria2@gmail.com)* - [@FrancoJCoria](https://github.com/FrancoJCoria)
 * **Emiliano Leguizamón** - *[emilegui76@gmail.com](mailto:emilegui76@gmail.com)* - [@Emi-legui](https://github.com/Emi-legui)
 * **Matías Agustín Ejarque** - *[ejarque016@gmail.com](mailto:ejarque016@gmail.com)* - [@matejarque](https://github.com/matejarqque)
+* **Nahuel Mercado Baravalle Agustin** - *[namercado28@gmail.com](mailto:namercado28@gmail.com)* - [@NahuelMBA](https://github.com/NahuelMBA)
 
 ---
 
