@@ -21,7 +21,7 @@ CREATE TABLE `Inmueble` (
   `portada` varchar(255),
   `id_propietario` int,
   `id_tipo` int,
-  `estado` varchar(255)
+  `estado` boolean
 );
 
 CREATE TABLE `TipoInmueble` (
@@ -33,7 +33,7 @@ CREATE TABLE `ImagenInmueble` (
   `id_imagen` int PRIMARY KEY AUTO_INCREMENT,
   `url_imagen` varchar(255),
   `id_inmueble` int,
-  `estado` varchar(255)
+  `estado` boolean
 );
 
 CREATE TABLE `Pago` (
@@ -41,7 +41,7 @@ CREATE TABLE `Pago` (
   `concepto` varchar(255),
   `fecha_pago` date,
   `importe` decimal,
-  `estado` varchar(255),
+  `estado` boolean,
   `id_reserva` int,
   `id_usuario_creador` int,
   `id_usuario_anulador` int

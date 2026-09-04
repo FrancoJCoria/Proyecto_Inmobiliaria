@@ -22,6 +22,10 @@ public class Inmueble
 
     public string? Portada { get; set; }
 
+    public IFormFile? PortadaFile { get; set; }
+
+    public IList<ImagenInmueble> Imagenes { get; set; } = new List<ImagenInmueble>();
+
     [Range(1, int.MaxValue, ErrorMessage = "Hay que elegir un propietario")]
     public int Id_propietario { get; set; }
 
