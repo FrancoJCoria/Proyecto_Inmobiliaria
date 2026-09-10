@@ -12,13 +12,22 @@ public class PropietarioController : Controller
         _repositorio = repositorio;
     }
 
-    public IActionResult Index()
+    public IActionResult Index(int pagina = 1)
     {
-        var propietarios = _repositorio.ObtenerTodos();
+        if (pagina < 1) pagina = 1;
+        int tamanoPagina = 5;
+
+        // obtiene registros para la paginacion, en este caso siempre esta limitado a 5 por pagina
+        var propietarios = _repositorio.ObtenerTodos(pagina, tamanoPagina);
+
+        //solo envia la pagina actual, necesario para el boton de atras y siguiente
+        ViewBag.PaginaActual = pagina;
+
+        //los elementos que regresa por tanda
         ViewData["Cantidad"] = propietarios.Count();
+
         return View(propietarios);
     }
-
     [HttpGet]
     public IActionResult Details(int id)
     {
@@ -46,6 +55,13 @@ public class PropietarioController : Controller
         }
 
         int idGenerado = _repositorio.Alta(propietario);
+    
+        if (idGenerado == -1)//para comprobar si el dni ya existe
+        {
+            ModelState.AddModelError("Dni", "Ya existe un propietario registrado con este DNI.");
+            return View(propietario);
+        }
+
         if (idGenerado == 0)
         {
             ModelState.AddModelError("", "No se pudo crear el propietario.");
@@ -117,6 +133,6 @@ public class PropietarioController : Controller
 
     private Propietario? BuscarPorId(int id)
     {
-        return _repositorio.ObtenerTodos().FirstOrDefault(p => p.Id_propietario == id);
+        return _repositorio.ObtenerPorId(id);
     }
 }
