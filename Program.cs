@@ -12,6 +12,7 @@ builder.Services.AddScoped<IRepositorioReserva, RepositorioReserva>();
 builder.Services.AddScoped<IRepositorioUsuario, RepositorioUsuario>();
 builder.Services.AddScoped<IRepositorioInmueble, RepositorioInmueble>();
 builder.Services.AddScoped<IRepositorioTipoInmueble, RepositorioTipoInmueble>();
+builder.Services.AddScoped<IRepositorioImagenInmueble, RepositorioImagenInmueble>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

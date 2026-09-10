@@ -8,6 +8,8 @@ public interface IRepositorioInmueble
 
     int Modificacion(Inmueble i);
 
+    int ModificarPortada(int id, string url);
+
     IList<Inmueble> ObtenerTodos();
 
     Inmueble? ObtenerPorId(int id);

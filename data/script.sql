@@ -41,7 +41,7 @@ CREATE TABLE Pago (
   concepto varchar(255),
   fecha_pago date,
   importe decimal,
-  estado varchar(255),
+  estado boolean,
   id_reserva int,
   id_usuario_creador int,
   id_usuario_anulador int

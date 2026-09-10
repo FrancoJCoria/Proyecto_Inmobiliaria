@@ -53,9 +53,21 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return comando.ExecuteNonQuery();
     }
 
-    public IList<Inmueble> ObtenerTodos()
+    public int ModificarPortada(int id, string url)
     {
-        var lista = new List<Inmueble>();
+        using var conexion = new MySqlConnection(connectionString);
+        string consultaSql = @"UPDATE Inmueble SET portada = @portada WHERE id_inmueble = @id";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@portada", string.IsNullOrEmpty(url) ? DBNull.Value : url);
+        comando.Parameters.AddWithValue("@id", id);
+
+        conexion.Open();
+        return comando.ExecuteNonQuery();
+    }
+
+    public IList<Inmueble> ObtenerTodos()
+    {        var lista = new List<Inmueble>();
         using var conexion = new MySqlConnection(connectionString);
         string consultaSql = @"SELECT id_inmueble, direccion, cupo, precio_dia, porcentaje_reserva,
         disponible, portada, id_propietario, id_tipo, estado

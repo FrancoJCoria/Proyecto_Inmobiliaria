@@ -8,12 +8,14 @@ public class InmuebleController : Controller
     private readonly IRepositorioInmueble _repositorio;
     private readonly IRepositorioPropietario _repositorioPropietario;
     private readonly IRepositorioTipoInmueble _repositorioTipo;
+    private readonly IRepositorioImagenInmueble _repositorioImagen;
 
-    public InmuebleController(IRepositorioInmueble repositorio, IRepositorioPropietario repositorioPropietario, IRepositorioTipoInmueble repositorioTipo)
+    public InmuebleController(IRepositorioInmueble repositorio, IRepositorioPropietario repositorioPropietario, IRepositorioTipoInmueble repositorioTipo, IRepositorioImagenInmueble repositorioImagen)
     {
         _repositorio = repositorio;
         _repositorioPropietario = repositorioPropietario;
         _repositorioTipo = repositorioTipo;
+        _repositorioImagen = repositorioImagen;
     }
 
     public IActionResult Index()
@@ -120,6 +122,76 @@ public class InmuebleController : Controller
             return NotFound();
         }
         return RedirectToAction("Index");
+    }
+
+    [HttpGet]
+    public IActionResult Imagenes(int id)
+    {
+        var inmueble = _repositorio.ObtenerPorId(id);
+        if (inmueble == null)
+        {
+            return NotFound();
+        }
+        inmueble.Imagenes = _repositorioImagen.BuscarPorInmueble(id);
+        CargarListas();
+        return View(inmueble);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Portada(Inmueble entidad, [FromServices] IWebHostEnvironment environment)
+    {
+        try
+        {
+            var inmueble = _repositorio.ObtenerPorId(entidad.Id_inmueble);
+            if (inmueble == null)
+            {
+                return NotFound();
+            }
+
+            if (inmueble.Portada != null)
+            {
+                string rutaEliminar = Path.Combine(environment.WebRootPath, "Uploads", "Inmuebles",
+                    Path.GetFileName(inmueble.Portada));
+                if (System.IO.File.Exists(rutaEliminar))
+                    System.IO.File.Delete(rutaEliminar);
+            }
+
+            if (entidad.PortadaFile != null)
+            {
+                string wwwPath = environment.WebRootPath;
+                string path = Path.Combine(wwwPath, "Uploads");
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+
+                path = Path.Combine(path, "Inmuebles");
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+
+                string fileName = "portada_" + entidad.Id_inmueble + Path.GetExtension(entidad.PortadaFile.FileName);
+                string rutaFisicaCompleta = Path.Combine(path, fileName);
+
+                using (var stream = new FileStream(rutaFisicaCompleta, FileMode.Create))
+                {
+                    entidad.PortadaFile.CopyTo(stream);
+                }
+
+                entidad.Portada = Path.Combine("/Uploads/Inmuebles", fileName);
+            }
+            else
+            {
+                entidad.Portada = string.Empty;
+            }
+
+            _repositorio.ModificarPortada(entidad.Id_inmueble, entidad.Portada);
+            TempData["Mensaje"] = "Portada actualizada correctamente";
+            return RedirectToAction(nameof(Imagenes), new { id = entidad.Id_inmueble });
+        }
+        catch (Exception e)
+        {
+            TempData["Error"] = e.Message;
+            return RedirectToAction(nameof(Imagenes), new { id = entidad.Id_inmueble });
+        }
     }
 
     private void CargarListas()
