@@ -9,4 +9,6 @@ public interface IRepositorioPropietario
     int Baja(Propietario p);
     int Modificacion(Propietario p);
     IList<Propietario> ObtenerTodos();
+    IList<Propietario> ObtenerTodos(int pagina, int tamanoPagina);
+    Propietario? ObtenerPorId(int id);
 }

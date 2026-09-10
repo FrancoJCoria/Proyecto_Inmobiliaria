@@ -39,7 +39,7 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
             conexion.Open();
             
             //ejecutamos y obtenemos el ID generado mediante ExecuteScalar
-            object resultado = comando.ExecuteScalar();
+            object? resultado = comando.ExecuteScalar();
             if (resultado != null && int.TryParse(resultado.ToString(), out int id))
             {
                 idGenerado = id;
