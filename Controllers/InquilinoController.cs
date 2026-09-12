@@ -12,19 +12,23 @@ public class InquilinoController : Controller
         _repositorio = repositorio;
     }
 
-    public IActionResult Index()
+    public IActionResult Index(int pagina = 1)
     {
-        var inquilinos = _repositorio.ObtenerTodos();
+        if (pagina < 1) pagina = 1;
+        int tamanoPagina = 5;
+
+        var inquilinos = _repositorio.ObtenerTodos(pagina, tamanoPagina);
+        ViewBag.PaginaActual = pagina;
         ViewData["Cantidad"] = inquilinos.Count();
         ViewBag.Otro = "Bienvenido al listado de inquilinos";
+
         return View(inquilinos);
     }
 
     [HttpGet]
     public IActionResult Details(int id)
     {
-        var inquilinos = _repositorio.ObtenerTodos();
-        var inquilino = inquilinos.FirstOrDefault(i => i.Id_inquilino == id);
+        var inquilino = _repositorio.ObtenerPorId(id);
         if (inquilino == null)
         {
             return NotFound();
@@ -57,8 +61,7 @@ public class InquilinoController : Controller
     [HttpGet]
     public IActionResult Edit(int id)
     {
-        var inquilinos = _repositorio.ObtenerTodos();
-        var inquilino = inquilinos.FirstOrDefault(i => i.Id_inquilino == id);
+        var inquilino = _repositorio.ObtenerPorId(id);
         if (inquilino == null)
         {
             return NotFound();
@@ -88,8 +91,7 @@ public class InquilinoController : Controller
     [HttpGet]
     public IActionResult Delete(int id)
     {
-        var inquilinos = _repositorio.ObtenerTodos();
-        var inquilino = inquilinos.FirstOrDefault(i => i.Id_inquilino == id);
+        var inquilino = _repositorio.ObtenerPorId(id);
         if (inquilino == null)
         {
             return NotFound();
