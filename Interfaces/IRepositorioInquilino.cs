@@ -8,5 +8,6 @@ public interface IRepositorioInquilino
 
     int Modificacion(Inquilino i);
 
-    IList<Inquilino> ObtenerTodos();
+    IList<Inquilino> ObtenerTodos(int pagina = 1, int tamanoPagina = 5);
+    Inquilino? ObtenerPorId(int id);
 }

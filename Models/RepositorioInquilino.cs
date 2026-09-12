@@ -8,6 +8,8 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
 {
     public RepositorioInquilino(IConfiguration configuration) : base(configuration) { }
 
+//----------------------------------------------------------------CREAR INQUILINO-------------------------------------------
+
     public int Alta(Inquilino inquilino)
     {
         int idGenerado = 0;
@@ -23,6 +25,8 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
         return idGenerado;
     }
 
+//----------------------------------------------------------------BAJA LOGICA INQUILINO-------------------------------------------
+
     public int Baja(int id)
     {
         int filasAfectadas = 0;
@@ -35,6 +39,8 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
         filasAfectadas = command.ExecuteNonQuery();
         return filasAfectadas;
     }
+
+//----------------------------------------------------------------MODIFICAR LOS INQUILINOS-------------------------------------------
 
     public int Modificacion(Inquilino inquilino)
     {
@@ -49,12 +55,20 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
         return filasAfectadas;
     }
 
-    public IList<Inquilino> ObtenerTodos()
+//----------------------------------------------------------------LISTAR TODSOS LOS INQUILINOS-------------------------------------------
+public IList<Inquilino> ObtenerTodos(int pagina = 1, int tamanoPagina = 5)
     {
+        try{
         var inquilinos = new List<Inquilino>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var connection = new MySqlConnection(connectionString);
-        string consultaSql = @"SELECT id_inquilino, dni, nombre, apellido, telefono, email, estado FROM Inquilino";
+        string consultaSql = @"SELECT id_inquilino, dni, nombre, apellido, telefono, email, estado FROM Inquilino 
+        ORDER BY id_inquilino ASC
+        LIMIT @limit OFFSET @offset;";
         using var command = new MySqlCommand(consultaSql, connection);
+        command.Parameters.AddWithValue("@limit", tamanoPagina);
+        command.Parameters.AddWithValue("@offset", offset);
+
         connection.Open();
         using var reader = command.ExecuteReader();
         while (reader.Read())
@@ -71,6 +85,50 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
             });
         }
         return inquilinos;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Fallo en ObtenerTodos Inquilino: {e.Message}");
+            throw;
+        }
+    }
+
+//-------------------------------------------------------------OBETENER INQUILINO POR ID --------------------------------------------
+    public Inquilino? ObtenerPorId(int id)
+    {
+        try
+        {
+            Inquilino? inquilino = null;
+            using var connection = new MySqlConnection(connectionString);
+            string consultaSql = @"SELECT id_inquilino, dni, nombre, apellido, telefono, email, estado 
+            FROM Inquilino 
+            WHERE id_inquilino = @id;";
+
+            using var command = new MySqlCommand(consultaSql, connection);
+            command.Parameters.AddWithValue("@id", id);
+
+            connection.Open();
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                inquilino = new Inquilino
+                {
+                    Id_inquilino = reader.GetInt32("id_inquilino"),
+                    Dni = reader.GetString("dni"),
+                    Nombre = reader.GetString("nombre"),
+                    Apellido = reader.GetString("apellido"),
+                    Telefono = reader.IsDBNull(reader.GetOrdinal("telefono")) ? "" : reader.GetString("telefono"),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? "" : reader.GetString("email"),
+                    Estado = reader.GetBoolean("estado")
+                };
+            }
+            return inquilino;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error en ObtenerPorId Inquilino: {e.Message}");
+            throw;
+        }
     }
 
     private static void BindId(MySqlCommand cmd, Inquilino inquilino)
