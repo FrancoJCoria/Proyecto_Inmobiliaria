@@ -138,6 +138,25 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         }
     }
 
+    //------------------------------------------------------------------------------------------ACTUALIZAR CLAVE------------------------------------------//
+    public int ActualizarClave(int id, string clave)
+    {
+        int filaAfectada = 0;
+
+        using var conexion = new MySqlConnection(connectionString);
+        string consultaSql = @"UPDATE Usuario
+        SET clave = @clave
+        WHERE id_usuario = @id_usuario AND estado = 1;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@clave", clave);
+        comando.Parameters.AddWithValue("@id_usuario", id);
+
+        conexion.Open();
+        filaAfectada = comando.ExecuteNonQuery();
+        return filaAfectada;
+    }
+
     //------------------------------------------------------------------------------------------OBTENER USUARIO POR ID------------------------------------------//
     public Usuario? ObtenerPorId(int id)
     {
