@@ -1,9 +1,21 @@
 using Inmobiliaria.Models; 
-
+using Microsoft.AspNetCore.Authentication.Cookies;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(config =>
+    {
+        config.LoginPath = "/Usuario/Login";
+        config.LogoutPath = "/Usuario/Logout";
+        config.AccessDeniedPath = "/Home/AccesoDenegado";
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Administrador", policy => policy.RequireRole("Administrador"));
+});
 
 //REGISTRO DE REPOSITORIOS 
 builder.Services.AddScoped<IRepositorioPropietario, RepositorioPropietario>();
@@ -26,6 +38,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
