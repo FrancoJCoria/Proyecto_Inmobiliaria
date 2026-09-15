@@ -1,8 +1,9 @@
 using Inmobiliaria.Models;
 using Microsoft.AspNetCore.Mvc;
-
+using Microsoft.AspNetCore.Authorization;
 namespace Inmobiliaria.Controllers;
 
+[Authorize]
 public class ImagenInmuebleController : Controller
 {
     private readonly IRepositorioImagenInmueble _repositorio;
@@ -64,6 +65,7 @@ public class ImagenInmuebleController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Administrador")]
     public IActionResult Eliminar(int id, [FromServices] IWebHostEnvironment environment)
     {
         try

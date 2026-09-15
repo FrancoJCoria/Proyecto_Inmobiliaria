@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Inmobiliaria.Models;
 using MySqlConnector;
-
+using Microsoft.AspNetCore.Authorization;
 namespace Inmobiliaria.Controllers;
 
+[Authorize]
 public class TipoInmuebleController : Controller
 {
     private readonly IRepositorioTipoInmueble _repositorio;
@@ -75,6 +76,7 @@ public class TipoInmuebleController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrador")]
     public IActionResult Delete(int id)
     {
         var tipo = _repositorio.ObtenerPorId(id);
@@ -88,6 +90,7 @@ public class TipoInmuebleController : Controller
     [HttpPost]
     [ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador")]
     public IActionResult DeleteConfirmado(int id)
     {
         var tipo = _repositorio.ObtenerPorId(id);
