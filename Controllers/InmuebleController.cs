@@ -19,10 +19,12 @@ public class InmuebleController : Controller
         _repositorioImagen = repositorioImagen;
     }
 
-    public IActionResult Index()
+    public IActionResult Index(int pagina = 1)
     {
-        var inmuebles = _repositorio.ObtenerTodos();
+        const int tamanoPagina = 5;
+        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina);
         ViewData["Cantidad"] = inmuebles.Count();
+        ViewBag.PaginaActual = pagina;
         CargarListas();
         return View(inmuebles);
     }
@@ -56,7 +58,7 @@ public class InmuebleController : Controller
             return View(inmueble);
         }
 
-        inmueble.Estado = "Activo";
+        inmueble.Estado = true;
         int idGenerado = _repositorio.Alta(inmueble);
         if (idGenerado == 0)
         {

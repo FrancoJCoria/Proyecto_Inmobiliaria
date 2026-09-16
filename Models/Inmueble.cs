@@ -32,7 +32,7 @@ public class Inmueble
     [Range(1, int.MaxValue, ErrorMessage = "Hay que elegir un tipo de inmueble")]
     public int Id_tipo { get; set; }
 
-    public string Estado { get; set; } = "Activo";
+    public bool Estado { get; set; } = true;
 
     public override string ToString() => $"{Direccion} (cupo {Cupo})";
 }

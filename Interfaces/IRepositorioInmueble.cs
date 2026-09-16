@@ -10,7 +10,7 @@ public interface IRepositorioInmueble
 
     int ModificarPortada(int id, string url);
 
-    IList<Inmueble> ObtenerTodos();
+    IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5);
 
     Inmueble? ObtenerPorId(int id);
 }
