@@ -30,7 +30,7 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         string consultaSql = @"UPDATE Inmueble SET estado = @estado WHERE id_inmueble = @id";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
-        comando.Parameters.AddWithValue("@estado", "Inactivo");
+        comando.Parameters.AddWithValue("@estado", 0);
         comando.Parameters.AddWithValue("@id", id);
 
         conexion.Open();
@@ -66,14 +66,21 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return comando.ExecuteNonQuery();
     }
 
-    public IList<Inmueble> ObtenerTodos()
-    {        var lista = new List<Inmueble>();
+    public IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5)
+    {        
+        
+        var lista = new List<Inmueble>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var conexion = new MySqlConnection(connectionString);
         string consultaSql = @"SELECT id_inmueble, direccion, cupo, precio_dia, porcentaje_reserva,
         disponible, portada, id_propietario, id_tipo, estado
-        FROM Inmueble WHERE estado = 'Activo'";
+        FROM Inmueble WHERE estado = 1
+        ORDER BY id_inmueble ASC
+        LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@limit", tamanoPagina);
+        comando.Parameters.AddWithValue("@offset", offset);
         conexion.Open();
         using var lector = comando.ExecuteReader();
 
@@ -109,16 +116,28 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
     {
         return new Inmueble
         {
-            Id_inmueble = lector.GetInt32("id_inmueble"),
-            Direccion = lector.GetString("direccion"),
-            Cupo = lector.GetInt32("cupo"),
-            Precio_dia = lector.GetDecimal("precio_dia"),
-            Porcentaje_reserva = lector.GetDecimal("porcentaje_reserva"),
-            Disponible = lector.GetBoolean("disponible"),
-            Portada = lector.IsDBNull(lector.GetOrdinal("portada")) ? "" : lector.GetString("portada"),
-            Id_propietario = lector.GetInt32("id_propietario"),
-            Id_tipo = lector.GetInt32("id_tipo"),
-            Estado = lector.IsDBNull(lector.GetOrdinal("estado")) ? "" : lector.GetString("estado")
+            Id_inmueble = lector.GetInt32(lector.GetOrdinal("id_inmueble")),
+            Direccion = lector.IsDBNull(lector.GetOrdinal("direccion")) 
+                ? "" 
+                : lector.GetString(lector.GetOrdinal("direccion")),
+            Cupo = lector.IsDBNull(lector.GetOrdinal("cupo")) 
+                ? 0 
+                : Convert.ToInt32(lector.GetValue(lector.GetOrdinal("cupo"))),
+            Precio_dia = lector.IsDBNull(lector.GetOrdinal("precio_dia")) 
+                ? 0m 
+                : Convert.ToDecimal(lector.GetValue(lector.GetOrdinal("precio_dia"))),
+            Porcentaje_reserva = lector.IsDBNull(lector.GetOrdinal("porcentaje_reserva")) 
+                ? 0m 
+                : Convert.ToDecimal(lector.GetValue(lector.GetOrdinal("porcentaje_reserva"))),
+            Disponible = !lector.IsDBNull(lector.GetOrdinal("disponible")) 
+                && Convert.ToBoolean(lector.GetValue(lector.GetOrdinal("disponible"))),
+            Portada = lector.IsDBNull(lector.GetOrdinal("portada")) 
+                ? "" 
+                : lector.GetString(lector.GetOrdinal("portada")),
+            Id_propietario = Convert.ToInt32(lector.GetValue(lector.GetOrdinal("id_propietario"))),
+            Id_tipo = Convert.ToInt32(lector.GetValue(lector.GetOrdinal("id_tipo"))),
+            Estado = !lector.IsDBNull(lector.GetOrdinal("estado")) 
+                && Convert.ToBoolean(lector.GetValue(lector.GetOrdinal("estado")))
         };
     }
 
