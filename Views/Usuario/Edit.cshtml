@@ -8,7 +8,7 @@
 
 <div class="row">
 	<div class="col-md-5">
-		<form asp-action="Edit" method="post">
+		<form asp-action="Edit" method="post" enctype="multipart/form-data">
 			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
 			<input type="hidden" name="id" value="@Model.Id_usuario" />
 			<input type="hidden" asp-for="Id_usuario" />
@@ -50,9 +50,17 @@
 				<input type="hidden" asp-for="Rol" />
 			}
 			<div class="mb-3">
-				<label asp-for="Avatar" class="form-label"></label>
-				<input asp-for="Avatar" class="form-control" />
-				<span asp-validation-for="Avatar" class="text-danger"></span>
+				<label class="form-label d-block">Avatar</label>
+				@if (!string.IsNullOrEmpty(Model.Avatar))
+				{
+					<img src="@Model.Avatar" width="80" class="img-thumbnail mb-2" />
+				}
+				else
+				{
+					<img src="https://ui-avatars.com/api/?rounded=true&name=@Model.Nombre+@Model.Apellido" width="80" class="img-thumbnail mb-2" />
+				}
+				<input asp-for="AvatarFile" type="file" accept="image/*" class="form-control" />
+				<span asp-validation-for="AvatarFile" class="text-danger"></span>
 			</div>
 			<button type="submit" class="btn btn-primary">Guardar</button>
 			@if (User.IsInRole("Administrador"))

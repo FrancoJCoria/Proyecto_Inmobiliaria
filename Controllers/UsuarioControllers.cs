@@ -47,7 +47,7 @@ public class UsuarioController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize(Roles = "Administrador")]
-    public IActionResult Create(Usuario usuario)
+    public IActionResult Create(Usuario usuario, [FromServices] IWebHostEnvironment environment)
     {
         if (!ModelState.IsValid)
         {
@@ -68,6 +68,13 @@ public class UsuarioController : Controller
             ModelState.AddModelError("", "No se pudo crear el usuario.");
             return View(usuario);
         }
+
+        if (usuario.AvatarFile != null && usuario.AvatarFile.Length > 0)
+        {
+            usuario.Avatar = GuardarAvatar(usuario, environment);
+            _repositorio.Modificacion(usuario);
+        }
+
         return RedirectToAction("Index");
     }
 
@@ -93,7 +100,7 @@ public class UsuarioController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [Authorize]
-    public IActionResult Edit(int id, Usuario usuario)
+    public IActionResult Edit(int id, Usuario usuario, [FromServices] IWebHostEnvironment environment)
     {
         var original = _repositorio.ObtenerPorId(id);
         if (original == null)
@@ -114,6 +121,14 @@ public class UsuarioController : Controller
         {
             usuario.Rol = original.Rol;
             ModelState.Remove("Rol");
+        }
+
+        // si no se sube una foto nueva, se conserva la actual
+        usuario.Avatar = original.Avatar;
+        if (usuario.AvatarFile != null && usuario.AvatarFile.Length > 0)
+        {
+            EliminarAvatar(id, environment);
+            usuario.Avatar = GuardarAvatar(usuario, environment);
         }
 
         // si la clave viene vacía se conserva la actual (ya hasheada)
@@ -262,5 +277,41 @@ usuario.Clave = BCrypt.Net.BCrypt.HashPassword(usuario.Clave);
     {
         var idClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return int.TryParse(idClaim, out var id) ? id : null;
+    }
+
+    //--------------------------------------AVATAR------------------------------------------//
+
+    private string GuardarAvatar(Usuario usuario, IWebHostEnvironment environment)
+    {
+        string path = Path.Combine(environment.WebRootPath, "Uploads", "Avatares");
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        string extension = Path.GetExtension(usuario.AvatarFile!.FileName);
+        string nombreArchivo = $"avatar_{usuario.Id_usuario}{extension}";
+        string rutaCompleta = Path.Combine(path, nombreArchivo);
+
+        using (var stream = new FileStream(rutaCompleta, FileMode.Create))
+        {
+            usuario.AvatarFile.CopyTo(stream);
+        }
+
+        return $"/Uploads/Avatares/{nombreArchivo}";
+    }
+
+    private void EliminarAvatar(int id, IWebHostEnvironment environment)
+    {
+        string path = Path.Combine(environment.WebRootPath, "Uploads", "Avatares");
+        if (!Directory.Exists(path))
+        {
+            return;
+        }
+
+        foreach (var archivo in Directory.GetFiles(path, $"avatar_{id}.*"))
+        {
+            System.IO.File.Delete(archivo);
+        }
     }
 }
