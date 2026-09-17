@@ -100,3 +100,55 @@ ALTER TABLE Reserva ADD FOREIGN KEY (id_inquilino) REFERENCES Inquilino (id_inqu
 ALTER TABLE Reserva ADD FOREIGN KEY (id_usuario_creador) REFERENCES Usuario (id_usuario);
 
 ALTER TABLE Reserva ADD FOREIGN KEY (id_usuario_finalizador) REFERENCES Usuario (id_usuario);
+
+-- ============================================================================
+-- DATOS DE EJEMPLO (SEED)
+-- ============================================================================
+
+-- Tipos de inmueble
+INSERT INTO TipoInmueble (id_tipo, nombre) VALUES
+  (1, 'Departamento'),
+  (2, 'Casa'),
+  (3, 'Local');
+
+-- Propietarios
+INSERT INTO Propietario (id_propietario, dni, nombre, apellido, telefono, email, estado) VALUES
+  (1, '40801072', 'Franco', 'Lopez', '266378493', 'francoelopez@gmail.com', 1),
+  (2, '28765432', 'María', 'González', '2657112233', 'mariagonzalez@gmail.com', 1);
+
+-- Usuarios (la clave en texto plano se rehashea a BCrypt en el primer login)
+INSERT INTO Usuario (id_usuario, email, clave, nombre, apellido, avatar, rol, estado) VALUES
+  (1, 'admin@inmobiliaria.com', '123456', 'Admin', 'Sistema', NULL, 'Administrador', 1),
+  (2, 'empleado@inmobiliaria.com', '123456', 'Empleado', 'Demo', NULL, 'Empleado', 1);
+
+-- Inquilinos
+INSERT INTO Inquilino (id_inquilino, dni, nombre, apellido, telefono, email, estado) VALUES
+  (1, '45801034', 'Ana', 'Lopez', '2657246510', 'mariaelenalopez@gmail.com', 1),
+  (2, '36543210', 'Carlos', 'Pereira', '2664455667', 'carlospereira@gmail.com', 1),
+  (3, '38987654', 'Lucía', 'Fernández', '2655334455', 'luciafernandez@gmail.com', 1);
+
+-- Inmuebles
+INSERT INTO Inmueble (id_inmueble, direccion, cupo, precio_dia, porcentaje_reserva, disponible, portada, id_propietario, id_tipo, estado) VALUES
+  (1, 'Av. Illia 123', 4, 15000, 10, 1, '', 1, 1, 1),
+  (2, 'Belgrano 456', 6, 20000, 15, 1, '', 1, 2, 1),
+  (3, 'Pueyrredón 789', 2, 9000, 5, 1, '', 2, 3, 1),
+  (4, 'San Martín 321', 5, 18000, 10, 0, '', 2, 1, 1),
+  (5, 'Rivadavia 654', 8, 25000, 20, 1, '', 1, 2, 1),
+  (6, 'Mitre 987', 3, 12000, 10, 1, '', 2, 1, 1);
+
+-- Imágenes de inmuebles
+INSERT INTO ImagenInmueble (id_imagen, url_imagen, id_inmueble, estado) VALUES
+  (1, 'https://picsum.photos/seed/inm1/600/400', 1, 1),
+  (2, 'https://picsum.photos/seed/inm1b/600/400', 1, 1),
+  (3, 'https://picsum.photos/seed/inm2/600/400', 2, 1);
+
+-- Reservas
+INSERT INTO Reserva (id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario, estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador) VALUES
+  (1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 5 DAY), DATE_ADD(CURDATE(), INTERVAL 5 DAY), 15000, 1, 1, 1, 1, 2),
+  (2, DATE_ADD(CURDATE(), INTERVAL 7 DAY), DATE_ADD(CURDATE(), INTERVAL 12 DAY), NULL, 20000, 1, 2, 2, 1, NULL),
+  (3, DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY), 9000, 0, 3, 3, 1, 2);
+
+-- Pagos
+INSERT INTO Pago (id_pago, concepto, fecha_pago, importe, estado, id_reserva, id_usuario_creador, id_usuario_anulador) VALUES
+  (1, 'Reserva #1 - Señal', CURDATE(), 3000, 1, 1, 1, NULL),
+  (2, 'Reserva #2 - Pago completo', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 240000, 1, 2, 1, NULL);
