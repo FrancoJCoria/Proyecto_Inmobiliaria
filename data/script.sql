@@ -129,18 +129,20 @@ INSERT INTO Inquilino (id_inquilino, dni, nombre, apellido, telefono, email, est
 
 -- Inmuebles
 INSERT INTO Inmueble (id_inmueble, direccion, cupo, precio_dia, porcentaje_reserva, disponible, portada, id_propietario, id_tipo, estado) VALUES
-  (1, 'Av. Illia 123', 4, 15000, 10, 1, '', 1, 1, 1),
-  (2, 'Belgrano 456', 6, 20000, 15, 1, '', 1, 2, 1),
-  (3, 'Pueyrredón 789', 2, 9000, 5, 1, '', 2, 3, 1),
+  (1, 'Av. Illia 123', 4, 15000, 10, 1, '/Uploads/Inmuebles/portada_1.png', 1, 1, 1),
+  (2, 'Belgrano 456', 6, 20000, 15, 1, '/Uploads/Inmuebles/portada_2.png', 1, 2, 1),
+  (3, 'Pueyrredón 789', 2, 9000, 5, 1, '/Uploads/Inmuebles/portada_3.png', 2, 3, 1),
   (4, 'San Martín 321', 5, 18000, 10, 0, '', 2, 1, 1),
   (5, 'Rivadavia 654', 8, 25000, 20, 1, '', 1, 2, 1),
   (6, 'Mitre 987', 3, 12000, 10, 1, '', 2, 1, 1);
 
 -- Imágenes de inmuebles
 INSERT INTO ImagenInmueble (id_imagen, url_imagen, id_inmueble, estado) VALUES
-  (1, 'https://picsum.photos/seed/inm1/600/400', 1, 1),
-  (2, 'https://picsum.photos/seed/inm1b/600/400', 1, 1),
-  (3, 'https://picsum.photos/seed/inm2/600/400', 2, 1);
+  (1, '/Uploads/Inmuebles/1/54598973-45cf-4ca1-988e-e132d63a1b13.png', 1, 1),
+  (2, '/Uploads/Inmuebles/1/5e7f509e-df21-43bc-8bb9-36da38134eb7.png', 1, 1),
+  (3, '/Uploads/Inmuebles/2/14037950-efc1-4d75-9ff3-1ed3571d391f.png', 2, 1),
+  (4, '/Uploads/Inmuebles/2/2e7064e6-6cbf-45bd-8687-c6df77880532.png', 2, 1),
+  (5, '/Uploads/Inmuebles/3/91063bb7-49e0-4242-bdd9-aee39b912a3b.png', 3, 1);
 
 -- Reservas
 INSERT INTO Reserva (id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario, estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador) VALUES
