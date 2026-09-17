@@ -139,7 +139,7 @@ public class UsuarioController : Controller
         }
         else
         {
-usuario.Clave = BCrypt.Net.BCrypt.HashPassword(usuario.Clave);
+            usuario.Clave = BCrypt.Net.BCrypt.HashPassword(usuario.Clave);
         }
 
         if (!ModelState.IsValid)
