@@ -29,7 +29,17 @@ Sistema web para la gestión de alquileres temporarios de una agencia inmobiliar
 
 ### Base de datos
 
-Ejecutá el script `data/script.sql` en MySQL para crear la base de datos y las tablas.
+Ejecutá el script `data/script.sql` en MySQL: crea la base de datos, las tablas y carga datos de ejemplo (users, inmuebles, inquilinos, reservas, etc.).
+
+### Datos de prueba
+
+| Email | Clave | Rol |
+|-------|-------|-----|
+| `admin@inmobiliaria.com` | `123456` | Administrador |
+| `empleado@inmobiliaria.com` | `123456` | Empleado |
+
+> Las claves se guardan en texto plano en el seed para simplificar. Al primer login, la aplicación detecta que no es un hash BCrypt y la rehashea automáticamente en la base de datos.
+> Para volver a un estado inicial, reejecutá `data/script.sql` sobre una base de datos recién creada.
 
 ### Configuración
 
