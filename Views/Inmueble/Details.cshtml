@@ -1,46 +1,101 @@
 @model Inmobiliaria.Models.Inmueble
 
 @{
-	ViewData["Title"] = "Detalles del Inmueble";
-	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
-	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
-	var duenio = propietarios?.FirstOrDefault(p => p.Id_propietario == Model.Id_propietario);
-	var tipo = tipos?.FirstOrDefault(t => t.Id_tipo == Model.Id_tipo);
+    ViewData["Title"] = "Detalles del Inmueble";
+    var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
+    var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
+    var duenio = propietarios?.FirstOrDefault(p => p.Id_propietario == Model.Id_propietario);
+    var tipo = tipos?.FirstOrDefault(t => t.Id_tipo == Model.Id_tipo);
 }
 
 <h1>Detalles del Inmueble</h1>
 
-<dl class="row">
-	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Id_inmueble)</dt>
-	<dd class="col-sm-8">@Model.Id_inmueble</dd>
-	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Direccion)</dt>
-	<dd class="col-sm-8">@Model.Direccion</dd>
-	<dt class="col-sm-4">Tipo de inmueble</dt>
-	<dd class="col-sm-8">@(tipo != null ? tipo.Nombre : Model.Id_tipo.ToString())</dd>
-	<dt class="col-sm-4">Propietario</dt>
-	<dd class="col-sm-8">@(duenio != null ? duenio.Apellido + ", " + duenio.Nombre : Model.Id_propietario.ToString())</dd>
-	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Cupo)</dt>
-	<dd class="col-sm-8">@Model.Cupo personas</dd>
-	<dt class="col-sm-4">Precio por dia</dt>
-	<dd class="col-sm-8">@Model.Precio_dia.ToString("C")</dd>
-	<dt class="col-sm-4">Porcentaje de reserva</dt>
-	<dd class="col-sm-8">@Model.Porcentaje_reserva %</dd>
-	<dt class="col-sm-4">Disponible</dt>
-	<dd class="col-sm-8">
-		@if (Model.Disponible)
-		{
-			<span class="badge bg-success">Si</span>
-		}
-		else
-		{
-			<span class="badge bg-secondary">No</span>
-		}
-	</dd>
-	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Portada)</dt>
-	<dd class="col-sm-8">@Model.Portada</dd>
-	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Estado)</dt>
-	<dd class="col-sm-8">@Model.Estado</dd>
-</dl>
+<div class="row mt-4">
+    <div class="col-md-7">
+        <dl class="row">
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Id_inmueble)</dt>
+            <dd class="col-sm-8">@Model.Id_inmueble</dd>
 
-<a asp-action="Edit" asp-route-id="@Model.Id_inmueble" class="btn btn-primary">Editar</a>
-<a asp-action="Index" class="btn btn-secondary">Volver</a>
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Direccion)</dt>
+            <dd class="col-sm-8">@Model.Direccion</dd>
+
+            <dt class="col-sm-4">Tipo de inmueble</dt>
+            <dd class="col-sm-8">@(tipo != null ? tipo.Nombre : Model.Id_tipo.ToString())</dd>
+
+            <dt class="col-sm-4">Propietario</dt>
+            <dd class="col-sm-8">@(duenio != null ? duenio.Apellido + ", " + duenio.Nombre : Model.Id_propietario.ToString())</dd>
+
+            <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Cupo)</dt>
+            <dd class="col-sm-8">@Model.Cupo personas</dd>
+
+            <dt class="col-sm-4">Precio por dia</dt>
+            <dd class="col-sm-8">@Model.Precio_dia.ToString("C")</dd>
+
+            <dt class="col-sm-4">Porcentaje de reserva</dt>
+            <dd class="col-sm-8">@Model.Porcentaje_reserva %</dd>
+
+            <dt class="col-sm-4">Disponible</dt>
+            <dd class="col-sm-8">
+                @if (Model.Disponible)
+                {
+                    <span class="badge bg-success">Si</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">No</span>
+                }
+            </dd>
+
+            <dt class="col-sm-4">Estado</dt>
+            <dd class="col-sm-8">
+                @if (Model.Estado)
+                {
+                    <span>Activo</span>
+                }
+                else
+                {
+                    <span>Inactivo</span>
+                }
+            </dd>
+        </dl>
+    </div>
+
+    <div class="col-md-5">
+        <h5>Portada</h5>
+        @if (!string.IsNullOrEmpty(Model.Portada))
+        {
+            <img src="@Model.Portada" alt="Portada" class="img-thumbnail" style="max-height: 250px; width: 100%; object-fit: cover;" />
+        }
+        else
+        {
+            <p class="text-muted">Sin portada</p>
+        }
+    </div>
+</div>
+
+<hr />
+
+<div class="mt-3">
+    <h4>Otras fotos</h4>
+    @if (Model.Imagenes != null && Model.Imagenes.Any())
+    {
+        <div class="d-flex flex-wrap gap-2 mt-2">
+            @foreach (var img in Model.Imagenes)
+            {
+                <a href="@img.Url" target="_blank">
+                    <img src="@img.Url" class="img-thumbnail" style="width: 150px; height: 100px; object-fit: cover;" />
+                </a>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">No hay imagenes adicionales cargadas.</p>
+    }
+</div>
+
+<div class="mt-4">
+    <a asp-action="Edit" asp-route-id="@Model.Id_inmueble" class="btn btn-primary">Editar</a>
+    <a asp-action="Imagenes" asp-route-id="@Model.Id_inmueble" class="btn btn-secondary">Fotos</a>
+    <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+</div>

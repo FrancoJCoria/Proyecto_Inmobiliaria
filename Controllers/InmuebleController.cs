@@ -36,6 +36,7 @@ public class InmuebleController : Controller
         {
             return NotFound();
         }
+        inmueble.Imagenes = _repositorioImagen.BuscarPorInmueble(id);
         CargarListas();
         return View(inmueble);
     }
