@@ -166,4 +166,35 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         comando.Parameters.AddWithValue("@id_tipo", inmueble.Id_tipo);
         comando.Parameters.AddWithValue("@estado", inmueble.Estado);
     }
+
+
+
+    public IList<Inmueble> BuscarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin)
+    {
+        var lista = new List<Inmueble>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado
+        FROM Inmueble i
+        WHERE i.estado = 1 AND i.disponible = 1
+        AND i.id_inmueble NOT IN (
+        SELECT r.id_inmueble
+        FROM Reserva r
+        WHERE r.estado = 1 
+        AND r.fecha_inicio <= @fechaFin 
+        AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= @fechaInicio) ORDER BY i.id_inmueble ASC;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+        comando.Parameters.AddWithValue("@fechaFin", fechaFin);
+
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+        while (lector.Read())
+        {
+            lista.Add(LeerInmueble(lector));
+        }
+        return lista;
+    }
 }

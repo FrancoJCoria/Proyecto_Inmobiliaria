@@ -13,4 +13,6 @@ public interface IRepositorioInmueble
     IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5);
 
     Inmueble? ObtenerPorId(int id);
+
+    IList<Inmueble> BuscarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin);
 }
