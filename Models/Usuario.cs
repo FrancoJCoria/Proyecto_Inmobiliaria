@@ -6,18 +6,18 @@ public class Usuario
 
     [Required(ErrorMessage = "El email es obligatorio.")]
     [EmailAddress(ErrorMessage = "El formato del email no es valido")]
-    public string Email { get; set; }
+    public string Email { get; set; } = "";
 
     [Required(ErrorMessage = "La contraseña es obligatoria")]
     [MinLength(6, ErrorMessage = "La clave debe tener al menos 6 caracteres")]
     [MaxLength(50, ErrorMessage = "La clave supera la longitud permitida")]
-    public string Clave {get; set; }
+    public string Clave {get; set; } = "";
 
     [Required(ErrorMessage = "El nombre es obligatorio")]
-    public string Nombre {get; set; }
+    public string Nombre {get; set; } = "";
 
     [Required(ErrorMessage = "El Apellido es obligatorio")]
-    public string Apellido {get; set; }
+    public string Apellido {get; set; } = "";
 
 
     public string? Avatar { get; set; }
@@ -25,7 +25,7 @@ public class Usuario
     public IFormFile? AvatarFile { get; set; }
 
     [Required(ErrorMessage = "El rol es obligatorio")]
-    public string Rol { get; set; }
+    public string Rol { get; set; } = "";
     
     public bool Estado { get; set; } = true;
 
