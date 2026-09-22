@@ -1,0 +1,86 @@
+@model IEnumerable<Inmobiliaria.Models.Inmueble>
+
+@{
+	ViewData["Title"] = "Inmuebles menos reservados";
+	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
+	int plazo = (int)(ViewData["Dias"] ?? 30);
+	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
+	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
+}
+
+<h1>Inmuebles menos reservados en los últimos @plazo días (@cantidad)</h1>
+
+<form method="get" class="row g-2 mb-3">
+	<div class="col-auto">
+		<label class="form-label">Plazo (días)</label>
+		<select name="dias" class="form-select">
+			@foreach (var opcion in new[] { 7, 15, 30, 60, 90 })
+			{
+				if (opcion == plazo)
+				{
+					<option value="@opcion" selected>@opcion</option>
+				}
+				else
+				{
+					<option value="@opcion">@opcion</option>
+				}
+			}
+		</select>
+	</div>
+	<div class="col-auto align-self-end">
+		<button type="submit" class="btn btn-primary">Filtrar</button>
+		<a asp-action="MenosReservados" class="btn btn-secondary">Limpiar</a>
+	</div>
+</form>
+
+@if (Model.Any())
+{
+	<table class="table table-striped align-middle">
+		<thead>
+			<tr>
+				<th>Foto</th>
+				<th>Direccion</th>
+				<th>Tipo</th>
+				<th>Cupo</th>
+				<th>Precio por dia</th>
+				<th>Propietario</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model)
+			{
+				var duenio = propietarios?.FirstOrDefault(p => p.Id_propietario == item.Id_propietario);
+				var tipo = tipos?.FirstOrDefault(t => t.Id_tipo == item.Id_tipo);
+				<tr>
+					<td>
+						@if (!string.IsNullOrEmpty(item.Portada))
+						{
+							<img src="@item.Portada" alt="Foto" class="img-thumbnail" style="width: 70px; height: 50px; object-fit: cover;" />
+						}
+						else
+						{
+							<span class="text-muted" style="font-size: 0.8rem;">Sin foto</span>
+						}
+					</td>
+					<td>@item.Direccion</td>
+					<td>@(tipo != null ? tipo.Nombre : item.Id_tipo.ToString())</td>
+					<td>@item.Cupo</td>
+					<td>@item.Precio_dia.ToString("C")</td>
+					<td>@(duenio != null ? duenio.Apellido + ", " + duenio.Nombre : item.Id_propietario.ToString())</td>
+					<td>
+						<a asp-action="Details" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-info">Detalles</a>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+else
+{
+	<div class="alert alert-info">No hay inmuebles sin reservas en el período indicado.</div>
+}
+
+<p>
+	<a asp-action="Informes" class="btn btn-secondary">Volver a Informes</a>
+</p>
