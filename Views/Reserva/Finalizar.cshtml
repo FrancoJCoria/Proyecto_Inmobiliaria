@@ -1,0 +1,39 @@
+@model Inmobiliaria.Reserva
+
+@{
+	ViewData["Title"] = "Terminación anticipada";
+	decimal multa = (decimal)(ViewBag.Multa ?? 0m);
+	DateTime fechaEfectiva = ViewBag.FechaEfectiva ?? DateTime.Today;
+}
+
+<h1>Terminación anticipada de la Reserva Nro @Model.Id_reserva</h1>
+
+<div class="alert alert-info">
+	Reserva desde <strong>@Model.Fecha_inicio.ToString("dd/MM/yyyy")</strong> hasta <strong>@Model.Fecha_fin.ToString("dd/MM/yyyy")</strong>, con un monto diario de <strong>@Model.Monto_diario.ToString("C")</strong>.
+	<br />
+	La fecha de fin original <strong>no se modifica</strong>: se registra una nueva fecha de terminación efectiva.
+</div>
+
+<div class="row">
+	<div class="col-md-6">
+		<form asp-action="Finalizar" method="post">
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+			<input type="hidden" name="id" value="@Model.Id_reserva" />
+			<div class="mb-3">
+				<label class="form-label">Fecha en que se hará efectiva la terminación</label>
+				<input name="fechaFinEfectiva" type="date" class="form-control" value="@fechaEfectiva.ToString("yyyy-MM-dd")" />
+			</div>
+			<div class="alert alert-warning">
+				<strong>Multa a abonar: @multa.ToString("C")</strong>
+				<br />
+				<span class="text-muted">Si se cumplió menos de la mitad del tiempo original de la reserva, la multa es el 50% del alquiler restante. En caso contrario, el 25%. En ningún caso se devuelve dinero.</span>
+			</div>
+			<div class="alert alert-info">
+				Presione "Calcular multa" para recalcular el valor según la fecha elegida. Al confirmar, el pago "Multa por terminación anticipada" quedará registrado automáticamente en la reserva. Solo se finaliza si el pago queda registrado.
+			</div>
+			<button type="submit" name="accion" value="calcular" class="btn btn-secondary">Calcular multa</button>
+			<button type="submit" name="accion" value="finalizar" class="btn btn-primary">Finalizar y registrar pago</button>
+			<a asp-action="Details" asp-route-id="@Model.Id_reserva" class="btn btn-outline-secondary">Volver</a>
+		</form>
+	</div>
+</div>
