@@ -10,7 +10,9 @@ public interface IRepositorioInmueble
 
     int ModificarPortada(int id, string url);
 
-    IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5);
+    IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5, int? idPropietario = null, bool? disponible = null);
 
     Inmueble? ObtenerPorId(int id);
+
+    IList<Inmueble> BuscarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin);
 }

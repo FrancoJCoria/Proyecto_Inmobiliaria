@@ -9,6 +9,6 @@ public interface IRepositorioUsuario
     Usuario? ObtenerPorId(int id);
     Usuario? ObetenerPorEmail(string email);
 
-    IList<Usuario> ObtenerTodos();
+    IList<Usuario> ObtenerTodos(int pagina = 1, int tamanoPagina = 5);
 
 }

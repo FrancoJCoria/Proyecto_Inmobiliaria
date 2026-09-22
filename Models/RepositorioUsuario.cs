@@ -237,15 +237,20 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         return user;
     }
 
-    public IList<Usuario> ObtenerTodos()
+    public IList<Usuario> ObtenerTodos(int pagina = 1, int tamanoPagina = 5)
     {
         var lista = new List<Usuario>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var conexion = new MySqlConnection(connectionString);
 
         string consultaSql = @"SELECT id_usuario, email, clave, nombre, apellido, avatar, rol, estado
-        FROM Usuario";
+        FROM Usuario
+        ORDER BY id_usuario ASC
+        LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@limit", tamanoPagina);
+        comando.Parameters.AddWithValue("@offset", offset);
         conexion.Open();
         using var lector = comando.ExecuteReader();
 

@@ -6,14 +6,68 @@
 	int paginaActual = ViewBag.PaginaActual ?? 1;
 	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
 	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
+	int? filtroProp = ViewBag.FiltroPropietario as int?;
+    bool? filtroDisp = ViewBag.FiltroDisponible as bool?;
 }
 
 <h1>Listado de Inmuebles (@cantidad)</h1>
 
 <p>
 	<a asp-action="Create" class="btn btn-primary">Crear nuevo inmueble</a>
+	<a asp-action="BuscarDisponibles" class="btn btn-secondary">Buscar libres por fecha</a>
 </p>
+<!-- Formulario de filtros -->
+<form asp-action="Index" method="get" class="card card-body bg-light mb-3">
+    <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label fw-bold">Propietario:</label>
+            <select name="idPropietario" class="form-select">
+                <option value="">-- Todos los propietarios --</option>
+                @if (propietarios != null)
+                {
+                    foreach (var p in propietarios)
+                    {
+                        if (filtroProp == p.Id_propietario)
+                        {
+                            <option value="@p.Id_propietario" selected>@(p.Apellido + ", " + p.Nombre)</option>
+                        }
+                        else
+                        {
+                            <option value="@p.Id_propietario">@(p.Apellido + ", " + p.Nombre)</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
 
+        <div class="col-md-4">
+            <label class="form-label fw-bold">Disponibilidad:</label>
+            <select name="disponible" class="form-select">
+                <option value="">-- Todos --</option>
+                @if (filtroDisp.HasValue && filtroDisp.Value == true)
+                {
+                    <option value="true" selected>Solo Disponibles</option>
+                    <option value="false">No Disponibles</option>
+                }
+                else if (filtroDisp.HasValue && filtroDisp.Value == false)
+                {
+                    <option value="true">Solo Disponibles</option>
+                    <option value="false" selected>No Disponibles</option>
+                }
+                else
+                {
+                    <option value="true">Solo Disponibles</option>
+                    <option value="false">No Disponibles</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100">Limpiar</a>
+        </div>
+    </div>
+</form>
 <table class="table table-striped align-middle">
 	<thead>
 		<tr>

@@ -19,12 +19,14 @@ public class InmuebleController : Controller
         _repositorioImagen = repositorioImagen;
     }
 
-    public IActionResult Index(int pagina = 1)
+    public IActionResult Index(int pagina = 1, int? idPropietario = null, bool? disponible = null)
     {
         const int tamanoPagina = 5;
-        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina);
+        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina, idPropietario, disponible);
         ViewData["Cantidad"] = inmuebles.Count();
         ViewBag.PaginaActual = pagina;
+        ViewBag.FiltroPropietario = idPropietario;
+        ViewBag.FiltroDisponible = disponible;
         CargarListas();
         return View(inmuebles);
     }
@@ -205,4 +207,29 @@ public class InmuebleController : Controller
         ViewBag.Propietarios = _repositorioPropietario.ObtenerTodos();
         ViewBag.Tipos = _repositorioTipo.ObtenerTodos();
     }
+
+    [HttpGet]
+    public IActionResult BuscarDisponibles(DateTime? fechaInicio, DateTime? fechaFin)
+    {
+        CargarListas();
+
+        if (!fechaInicio.HasValue || !fechaFin.HasValue)
+        {
+            return View(new List<Inmueble>());
+        }
+
+        if (fechaInicio > fechaFin)
+        {
+            ViewBag.Error = "La fecha de inicio no puede ser posterior a la fecha de fin.";
+            return View(new List<Inmueble>());
+        }
+
+        ViewBag.FechaInicio = fechaInicio.Value.ToString("yyyy-MM-dd");
+        ViewBag.FechaFin = fechaFin.Value.ToString("yyyy-MM-dd");
+
+        var lista = _repositorio.BuscarDisponiblesPorFechas(fechaInicio.Value, fechaFin.Value);
+        return View(lista);
+    }
+
+
 }

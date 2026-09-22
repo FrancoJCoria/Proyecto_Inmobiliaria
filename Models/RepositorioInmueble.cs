@@ -66,21 +66,44 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return comando.ExecuteNonQuery();
     }
 
-    public IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5)
+    public IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5, int? idPropietario = null, bool? disponible = null)
     {        
         
         var lista = new List<Inmueble>();
         int offset = (pagina - 1) * tamanoPagina;
+
         using var conexion = new MySqlConnection(connectionString);
+
         string consultaSql = @"SELECT id_inmueble, direccion, cupo, precio_dia, porcentaje_reserva,
         disponible, portada, id_propietario, id_tipo, estado
-        FROM Inmueble WHERE estado = 1
-        ORDER BY id_inmueble ASC
-        LIMIT @limit OFFSET @offset;";
+        FROM Inmueble WHERE estado = 1;";
+
+        if(idPropietario.HasValue && idPropietario.Value > 0)
+        {
+            consultaSql += " AND id_propietario = @idPropietario";
+        }
+
+        if (disponible.HasValue)
+        {
+            consultaSql += " AND disponible = @disponible";
+        }
+
+        consultaSql += " ORDER BY id_inmueble ASC LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@limit", tamanoPagina);
         comando.Parameters.AddWithValue("@offset", offset);
+
+        if (idPropietario.HasValue && idPropietario.Value > 0)
+        {
+            comando.Parameters.AddWithValue("@idPropietario", idPropietario.Value);
+        }
+
+        if (disponible.HasValue)
+        {
+            comando.Parameters.AddWithValue("@disponible", disponible.Value);
+        }
+        
         conexion.Open();
         using var lector = comando.ExecuteReader();
 
@@ -165,5 +188,36 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         comando.Parameters.AddWithValue("@id_propietario", inmueble.Id_propietario);
         comando.Parameters.AddWithValue("@id_tipo", inmueble.Id_tipo);
         comando.Parameters.AddWithValue("@estado", inmueble.Estado);
+    }
+
+
+
+    public IList<Inmueble> BuscarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin)
+    {
+        var lista = new List<Inmueble>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado
+        FROM Inmueble i
+        WHERE i.estado = 1 AND i.disponible = 1
+        AND i.id_inmueble NOT IN (
+        SELECT r.id_inmueble
+        FROM Reserva r
+        WHERE r.estado = 1 
+        AND r.fecha_inicio <= @fechaFin 
+        AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= @fechaInicio) ORDER BY i.id_inmueble ASC;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+        comando.Parameters.AddWithValue("@fechaFin", fechaFin);
+
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+        while (lector.Read())
+        {
+            lista.Add(LeerInmueble(lector));
+        }
+        return lista;
     }
 }

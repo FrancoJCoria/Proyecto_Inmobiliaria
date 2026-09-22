@@ -271,7 +271,7 @@ public class ReservaController : Controller
         return RedirectToAction(nameof(Details), new { id });
     }
 
-    public IActionResult Informes()
+public IActionResult Informes()
     {
         return View();
     }
