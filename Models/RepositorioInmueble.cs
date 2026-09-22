@@ -76,7 +76,7 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
 
         string consultaSql = @"SELECT id_inmueble, direccion, cupo, precio_dia, porcentaje_reserva,
         disponible, portada, id_propietario, id_tipo, estado
-        FROM Inmueble WHERE estado = 1;";
+        FROM Inmueble WHERE estado = 1";
 
         if(idPropietario.HasValue && idPropietario.Value > 0)
         {
