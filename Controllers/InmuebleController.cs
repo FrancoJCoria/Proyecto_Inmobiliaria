@@ -208,6 +208,34 @@ public class InmuebleController : Controller
         ViewBag.Tipos = _repositorioTipo.ObtenerTodos();
     }
 
+    public IActionResult Informes()
+    {
+        return View();
+    }
+
+    public IActionResult MasReservados()
+    {
+        var inmuebles = _repositorio.ObtenerMasReservados();
+        ViewData["Cantidad"] = inmuebles.Count();
+        CargarListas();
+        return View(inmuebles);
+    }
+
+    public IActionResult MenosReservados(int? dias)
+    {
+        int plazo = dias ?? 30;
+        if (plazo < 1)
+        {
+            plazo = 30;
+        }
+
+        var inmuebles = _repositorio.ObtenerMenosReservados(plazo);
+        ViewData["Cantidad"] = inmuebles.Count();
+        ViewData["Dias"] = plazo;
+        CargarListas();
+        return View(inmuebles);
+    }
+
     [HttpGet]
     public IActionResult BuscarDisponibles(DateTime? fechaInicio, DateTime? fechaFin)
     {

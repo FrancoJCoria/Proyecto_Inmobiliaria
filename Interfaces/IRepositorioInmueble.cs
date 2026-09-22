@@ -15,4 +15,7 @@ public interface IRepositorioInmueble
     Inmueble? ObtenerPorId(int id);
 
     IList<Inmueble> BuscarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin);
+    
+    IList<Inmueble> ObtenerMasReservados();
+    IList<Inmueble> ObtenerMenosReservados(int cantidad);
 }

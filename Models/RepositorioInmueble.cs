@@ -220,4 +220,52 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         }
         return lista;
     }
+
+    public IList<Inmueble> ObtenerMasReservados()
+    {
+        var lista = new List<Inmueble>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado
+        FROM Inmueble i
+        JOIN Reserva r ON i.id_inmueble = r.id_inmueble
+        WHERE i.estado = 1 AND r.estado = 1 AND r.fecha_inicio >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
+        GROUP BY i.id_inmueble
+        ORDER BY COUNT(r.id_reserva) DESC;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+        while (lector.Read())
+        {
+            lista.Add(LeerInmueble(lector));
+        }
+        return lista;
+    }
+
+    public IList<Inmueble> ObtenerMenosReservados(int cantidad)
+    {
+        var lista = new List<Inmueble>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado
+        FROM Inmueble i
+        LEFT JOIN Reserva r ON i.id_inmueble = r.id_inmueble AND r.estado = 1 AND r.fecha_inicio >= DATE_SUB(CURDATE(), INTERVAL @cantidad DAY)
+        WHERE i.estado = 1
+        GROUP BY i.id_inmueble
+        ORDER BY COUNT(r.id_reserva) ASC;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@cantidad", cantidad);
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+        while (lector.Read())
+        {
+            lista.Add(LeerInmueble(lector));
+        }
+        return lista;
+    }
 }
