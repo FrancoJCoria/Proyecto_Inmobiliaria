@@ -10,4 +10,8 @@ public interface IRepositorioReserva
     IList<Reserva> ObtenerTodos();
 
     Reserva? ObtenerPorId(int id);
+
+    IList<Reserva> ObtenerVigentes(DateTime desde, DateTime hasta);
+
+    IList<Reserva> ObtenerPorTerminar(int dias);
 }

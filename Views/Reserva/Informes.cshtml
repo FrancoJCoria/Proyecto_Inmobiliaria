@@ -1,0 +1,22 @@
+@{
+	ViewData["Title"] = "Informes de Reservas";
+}
+
+<h1>Informes de Reservas</h1>
+
+<p class="text-muted">Elija un informe para consultar.</p>
+
+<div class="list-group w-50">
+	<a asp-action="Vigentes" class="list-group-item list-group-item-action">
+		<h5 class="mb-1">Reservas vigentes por rango de fechas</h5>
+		<p class="mb-1 text-muted">Lista las reservas activas y no finalizadas que se superponen con el período indicado.</p>
+	</a>
+	<a asp-action="PorTerminar" class="list-group-item list-group-item-action">
+		<h5 class="mb-1">Reservas que terminan en X días</h5>
+		<p class="mb-1 text-muted">Lista las reservas activas cuya fecha de fin cae dentro del plazo indicado.</p>
+	</a>
+</div>
+
+<p class="mt-3">
+	<a asp-action="Index" class="btn btn-secondary">Volver a Reservas</a>
+</p>

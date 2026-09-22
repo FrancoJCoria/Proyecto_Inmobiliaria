@@ -271,6 +271,43 @@ public class ReservaController : Controller
         return RedirectToAction(nameof(Details), new { id });
     }
 
+public IActionResult Informes()
+    {
+        return View();
+    }
+
+    public IActionResult Vigentes(DateTime? desde, DateTime? hasta)
+    {
+        DateTime desdeFecha = desde ?? DateTime.Today.AddMonths(-1);
+        DateTime hastaFecha = hasta ?? DateTime.Today.AddMonths(1);
+        if (hastaFecha < desdeFecha)
+        {
+            hastaFecha = desdeFecha;
+        }
+
+        var reservas = _repositorio.ObtenerVigentes(desdeFecha, hastaFecha);
+        ViewData["Cantidad"] = reservas.Count();
+        ViewData["Desde"] = desdeFecha;
+        ViewData["Hasta"] = hastaFecha;
+        CargarListas();
+        return View(reservas);
+    }
+
+    public IActionResult PorTerminar(int? dias)
+    {
+        int plazo = dias ?? 30;
+        if (plazo < 1)
+        {
+            plazo = 30;
+        }
+
+        var reservas = _repositorio.ObtenerPorTerminar(plazo);
+        ViewData["Cantidad"] = reservas.Count();
+        ViewData["Dias"] = plazo;
+        CargarListas();
+        return View(reservas);
+    }
+
     private static decimal CalcularMulta(Reserva reserva, DateTime fechaFinEfectiva)
     {
         int duracionOriginal = (reserva.Fecha_fin.Date - reserva.Fecha_inicio.Date).Days;
