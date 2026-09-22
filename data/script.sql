@@ -153,4 +153,5 @@ INSERT INTO Reserva (id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, mo
 -- Pagos
 INSERT INTO Pago (id_pago, concepto, fecha_pago, importe, estado, id_reserva, id_usuario_creador, id_usuario_anulador) VALUES
   (1, 'Reserva #1 - Señal', CURDATE(), 3000, 1, 1, 1, NULL),
-  (2, 'Reserva #2 - Pago completo', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 240000, 1, 2, 1, NULL);
+  (2, 'Reserva #2 - Pago completo', DATE_ADD(CURDATE(), INTERVAL 1 DAY), 240000, 1, 2, 1, NULL),
+  (3, 'Reserva #3 - Multa', DATE_SUB(CURDATE(), INTERVAL 1 DAY), 45000, 0, 3, 1, 2);
