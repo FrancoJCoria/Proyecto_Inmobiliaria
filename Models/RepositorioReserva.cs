@@ -172,6 +172,58 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
         return reserva;
     }
 
+    public IList<Reserva> ObtenerVigentes(DateTime desde, DateTime hasta)
+    {
+        var lista = new List<Reserva>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario,
+        estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador
+        FROM Reserva
+        WHERE estado = 1
+          AND (fecha_fin_efectiva IS NULL)
+          AND fecha_inicio <= @hasta
+          AND fecha_fin >= @desde
+        ORDER BY fecha_inicio ASC;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@desde", desde.Date);
+        comando.Parameters.AddWithValue("@hasta", hasta.Date);
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+
+        while (lector.Read())
+        {
+            lista.Add(LeerReserva(lector));
+        }
+        return lista;
+    }
+
+    public IList<Reserva> ObtenerPorTerminar(int dias)
+    {
+        var lista = new List<Reserva>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario,
+        estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador
+        FROM Reserva
+        WHERE estado = 1
+          AND (fecha_fin_efectiva IS NULL)
+          AND fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL @dias DAY)
+        ORDER BY fecha_fin ASC;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@dias", dias);
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+
+        while (lector.Read())
+        {
+            lista.Add(LeerReserva(lector));
+        }
+        return lista;
+    }
+
     private static Reserva LeerReserva(MySqlDataReader lector)
     {
         return new Reserva
