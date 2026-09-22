@@ -1,0 +1,81 @@
+@model IEnumerable<Inmobiliaria.Models.Inmueble>
+
+@{
+    ViewData["Title"] = "Buscar libres";
+    var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
+    var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
+}
+
+<h1>Buscar Inmuebles Libres por Fecha</h1>
+
+<form asp-action="BuscarDisponibles" method="get" class="row g-3 my-3">
+    <div class="col-auto">
+        <label for="fechaInicio" class="form-label">Desde</label>
+        <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" value="@ViewBag.FechaInicio" required />
+    </div>
+    <div class="col-auto">
+        <label for="fechaFin" class="form-label">Hasta</label>
+        <input type="date" class="form-control" id="fechaFin" name="fechaFin" value="@ViewBag.FechaFin" required />
+    </div>
+    <div class="col-auto align-self-end">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+    </div>
+</form>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+@if (ViewBag.FechaInicio != null && ViewBag.Error == null)
+{
+    if (Model.Any())
+    {
+        <table class="table table-striped align-middle mt-3">
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Direccion</th>
+                    <th>Tipo</th>
+                    <th>Cupo</th>
+                    <th>Precio por dia</th>
+                    <th>Propietario</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var duenio = propietarios?.FirstOrDefault(p => p.Id_propietario == item.Id_propietario);
+                    var tipo = tipos?.FirstOrDefault(t => t.Id_tipo == item.Id_tipo);
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.Portada))
+                            {
+                                <img src="@item.Portada" alt="Foto" class="img-thumbnail" style="width: 70px; height: 50px; object-fit: cover;" />
+                            }
+                            else
+                            {
+                                <span class="text-muted" style="font-size: 0.8rem;">Sin foto</span>
+                            }
+                        </td>
+                        <td>@item.Direccion</td>
+                        <td>@(tipo != null ? tipo.Nombre : item.Id_tipo.ToString())</td>
+                        <td>@item.Cupo</td>
+                        <td>@item.Precio_dia.ToString("C")</td>
+                        <td>@(duenio != null ? duenio.Apellido + ", " + duenio.Nombre : item.Id_propietario.ToString())</td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-info">Detalles</a>
+                            <a asp-controller="Reserva" asp-action="Create" asp-route-idInmueble="@item.Id_inmueble" class="btn btn-sm btn-success">Reservar</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="alert alert-info mt-3">No hay inmuebles disponibles en el rango de fechas seleccionado.</div>
+    }
+}
