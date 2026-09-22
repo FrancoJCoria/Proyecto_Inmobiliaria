@@ -19,12 +19,14 @@ public class InmuebleController : Controller
         _repositorioImagen = repositorioImagen;
     }
 
-    public IActionResult Index(int pagina = 1)
+    public IActionResult Index(int pagina = 1, int? idPropietario = null, bool? disponible = null)
     {
         const int tamanoPagina = 5;
-        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina);
+        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina, idPropietario, disponible);
         ViewData["Cantidad"] = inmuebles.Count();
         ViewBag.PaginaActual = pagina;
+        ViewBag.FiltroPropietario = idPropietario;
+        ViewBag.FiltroDisponible = disponible;
         CargarListas();
         return View(inmuebles);
     }
@@ -228,4 +230,6 @@ public class InmuebleController : Controller
         var lista = _repositorio.BuscarDisponiblesPorFechas(fechaInicio.Value, fechaFin.Value);
         return View(lista);
     }
+
+
 }
