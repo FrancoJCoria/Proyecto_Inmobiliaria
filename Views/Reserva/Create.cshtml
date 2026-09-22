@@ -3,7 +3,6 @@
 @{
 	ViewData["Title"] = "Crear Reserva";
 	var inquilinos = ViewBag.Inquilinos as IList<Inmobiliaria.Models.Inquilino>;
-	var usuarios = ViewBag.Usuarios as IList<Inmobiliaria.Models.Usuario>;
 	var inmuebles = ViewBag.Inmuebles as IList<Inmobiliaria.Models.Inmueble>;
 }
 
@@ -55,20 +54,6 @@
 					}
 				</select>
 				<span asp-validation-for="Id_inquilino" class="text-danger"></span>
-			</div>
-			<div class="mb-3">
-				<label asp-for="Id_usuario_creador" class="form-label">Usuario que la crea</label>
-				<select asp-for="Id_usuario_creador" class="form-select">
-					<option value="">-- Elegir usuario --</option>
-					@if (usuarios != null)
-					{
-						@foreach (var u in usuarios)
-						{
-							<option value="@u.Id_usuario">@u.Apellido, @u.Nombre</option>
-						}
-					}
-				</select>
-				<span asp-validation-for="Id_usuario_creador" class="text-danger"></span>
 			</div>
 			<div class="mb-3 form-check">
 				<input asp-for="Estado" class="form-check-input" checked />

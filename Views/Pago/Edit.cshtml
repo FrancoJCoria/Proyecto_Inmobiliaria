@@ -1,0 +1,38 @@
+@model Inmobiliaria.Models.Pago
+
+@{
+	ViewData["Title"] = "Editar Pago";
+}
+
+<h1>Editar Pago Nro @Model.Id_pago</h1>
+
+<p class="text-muted">Solo se puede modificar el concepto. El importe y la fecha se mantienen.</p>
+
+<div class="row">
+	<div class="col-md-6">
+		<form asp-action="Edit" method="post">
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+			<input type="hidden" name="id" value="@Model.Id_pago" />
+			<input type="hidden" asp-for="Id_pago" />
+			<div class="mb-3">
+				<label class="form-label">Fecha de pago</label>
+				<input class="form-control" value="@Model.Fecha_pago.ToString("dd/MM/yyyy")" disabled />
+			</div>
+			<div class="mb-3">
+				<label class="form-label">Importe</label>
+				<input class="form-control" value="@Model.Importe.ToString("C")" disabled />
+			</div>
+			<div class="mb-3">
+				<label asp-for="Concepto" class="form-label">Concepto</label>
+				<input asp-for="Concepto" class="form-control" />
+				<span asp-validation-for="Concepto" class="text-danger"></span>
+			</div>
+			<button type="submit" class="btn btn-primary">Guardar</button>
+			<a asp-action="Index" asp-route-idReserva="@Model.Id_reserva" class="btn btn-secondary">Volver</a>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}

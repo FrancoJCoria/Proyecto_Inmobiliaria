@@ -39,7 +39,11 @@
 				<td>@(inq != null ? inq.Apellido + ", " + inq.Nombre : item.Id_inquilino.ToString())</td>
 				<td>@item.Monto_diario.ToString("C")</td>
 				<td>
-					@if (item.Estado)
+					@if (item.Fecha_fin_efectiva != DateTime.MinValue)
+					{
+						<span class="badge bg-info text-dark">Finalizada</span>
+					}
+					else if (item.Estado)
 					{
 						<span class="badge bg-success">Activa</span>
 					}
@@ -51,6 +55,11 @@
 				<td>
 					<a asp-action="Details" asp-route-id="@item.Id_reserva" class="btn btn-sm btn-info">Detalles</a>
 					<a asp-action="Edit" asp-route-id="@item.Id_reserva" class="btn btn-sm btn-warning">Editar</a>
+					<a asp-controller="Pago" asp-action="Index" asp-route-idReserva="@item.Id_reserva" class="btn btn-sm btn-outline-primary">Pagos</a>
+					@if (item.Id_usuario_finalizador == 0 && item.Fecha_fin_efectiva == DateTime.MinValue)
+					{
+						<a asp-action="Finalizar" asp-route-id="@item.Id_reserva" class="btn btn-sm btn-warning">Finalizar</a>
+					}
 					<a asp-action="Delete" asp-route-id="@item.Id_reserva" class="btn btn-sm btn-danger">Anular</a>
 				</td>
 			</tr>

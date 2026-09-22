@@ -1,0 +1,79 @@
+@model IEnumerable<Inmobiliaria.Models.Pago>
+
+@{
+	ViewData["Title"] = "Pagos";
+	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
+	var reserva = ViewBag.Reserva as Inmobiliaria.Reserva;
+	decimal totalActivo = Model.Where(p => p.Estado).Sum(p => p.Importe);
+}
+
+<h1>Pagos de la Reserva Nro @reserva!.Id_reserva</h1>
+
+@if (reserva != null)
+{
+	<p class="text-muted">
+		@reserva!.Fecha_inicio.ToString("dd/MM/yyyy") a @reserva!.Fecha_fin.ToString("dd/MM/yyyy") - Total pagado: @totalActivo.ToString("C")
+	</p>
+}
+
+@if (TempData["Error"] != null)
+{
+	<div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<p>
+	<a asp-action="Create" asp-route-idReserva="@reserva!.Id_reserva" class="btn btn-primary">Cargar nuevo pago</a>
+	<a asp-controller="Reserva" asp-action="Details" asp-route-id="@reserva!.Id_reserva" class="btn btn-secondary">Volver a la reserva</a>
+</p>
+
+@if (Model.Any())
+{
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th>Nro</th>
+				<th>Concepto</th>
+				<th>Fecha de pago</th>
+				<th>Importe</th>
+				<th>Estado</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model)
+			{
+				<tr>
+					<td>@item.Id_pago</td>
+					<td>@item.Concepto</td>
+					<td>@item.Fecha_pago.ToString("dd/MM/yyyy")</td>
+					<td>@item.Importe.ToString("C")</td>
+					<td>
+						@if (item.Estado)
+						{
+							<span class="badge bg-success">Activo</span>
+						}
+						else
+						{
+							<span class="badge bg-secondary">Anulado</span>
+						}
+					</td>
+					<td>
+						<a asp-action="Details" asp-route-id="@item.Id_pago" class="btn btn-sm btn-info">Detalles</a>
+						@if (item.Estado)
+						{
+							<a asp-action="Edit" asp-route-id="@item.Id_pago" class="btn btn-sm btn-warning">Editar</a>
+							@if (User.IsInRole("Administrador"))
+							{
+								<a asp-action="Anular" asp-route-id="@item.Id_pago" class="btn btn-sm btn-danger">Anular</a>
+							}
+						}
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+else
+{
+	<div class="alert alert-info">No hay pagos cargados para esta reserva.</div>
+}

@@ -1,0 +1,47 @@
+@model Inmobiliaria.Models.Pago
+
+@{
+	ViewData["Title"] = "Detalles del Pago";
+	var usuarios = ViewBag.Usuarios as IList<Inmobiliaria.Models.Usuario>;
+}
+
+<h1>Pago Nro @Model.Id_pago</h1>
+
+<dl class="row">
+	<dt class="col-sm-4">Concepto</dt>
+	<dd class="col-sm-8">@Model.Concepto</dd>
+	<dt class="col-sm-4">Fecha de pago</dt>
+	<dd class="col-sm-8">@Model.Fecha_pago.ToString("dd/MM/yyyy")</dd>
+	<dt class="col-sm-4">Importe</dt>
+	<dd class="col-sm-8">@Model.Importe.ToString("C")</dd>
+	<dt class="col-sm-4">Reserva</dt>
+	<dd class="col-sm-8">
+		<a asp-controller="Reserva" asp-action="Details" asp-route-id="@Model.Id_reserva">Reserva #@Model.Id_reserva</a>
+	</dd>
+	<dt class="col-sm-4">Estado</dt>
+	<dd class="col-sm-8">
+		@if (Model.Estado)
+		{
+			<span class="badge bg-success">Activo</span>
+		}
+		else
+		{
+			<span class="badge bg-secondary">Anulado</span>
+		}
+	</dd>
+	@if (User.IsInRole("Administrador"))
+	{
+		var creador = usuarios?.FirstOrDefault(u => u.Id_usuario == Model.Id_usuario_creador);
+		<dt class="col-sm-4">Usuario que lo creó</dt>
+		<dd class="col-sm-8">@(creador != null ? creador.Apellido + ", " + creador.Nombre : Model.Id_usuario_creador.ToString())</dd>
+		if (Model.Id_usuario_anulador != 0)
+		{
+			var anulador = usuarios?.FirstOrDefault(u => u.Id_usuario == Model.Id_usuario_anulador);
+			<dt class="col-sm-4">Usuario que lo anuló</dt>
+			<dd class="col-sm-8">@(anulador != null ? anulador.Apellido + ", " + anulador.Nombre : Model.Id_usuario_anulador.ToString())</dd>
+		}
+	}
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.Id_pago" class="btn btn-primary">Editar</a>
+<a asp-action="Index" asp-route-idReserva="@Model.Id_reserva" class="btn btn-secondary">Volver</a>

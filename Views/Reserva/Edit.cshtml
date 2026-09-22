@@ -3,7 +3,6 @@
 @{
 	ViewData["Title"] = "Editar Reserva";
 	var inquilinos = ViewBag.Inquilinos as IList<Inmobiliaria.Models.Inquilino>;
-	var usuarios = ViewBag.Usuarios as IList<Inmobiliaria.Models.Usuario>;
 	var inmuebles = ViewBag.Inmuebles as IList<Inmobiliaria.Models.Inmueble>;
 }
 
@@ -62,34 +61,6 @@
 					}
 				</select>
 				<span asp-validation-for="Id_inquilino" class="text-danger"></span>
-			</div>
-			<div class="mb-3">
-				<label asp-for="Id_usuario_creador" class="form-label">Usuario que la creó</label>
-				<select asp-for="Id_usuario_creador" class="form-select">
-					<option value="">-- Elegir usuario --</option>
-					@if (usuarios != null)
-					{
-						@foreach (var u in usuarios)
-						{
-							<option value="@u.Id_usuario">@u.Apellido, @u.Nombre</option>
-						}
-					}
-				</select>
-				<span asp-validation-for="Id_usuario_creador" class="text-danger"></span>
-			</div>
-			<div class="mb-3">
-				<label asp-for="Id_usuario_finalizador" class="form-label">Usuario que la finalizó</label>
-				<select asp-for="Id_usuario_finalizador" class="form-select">
-					<option value="0">-- Sin finalizar --</option>
-					@if (usuarios != null)
-					{
-						@foreach (var u in usuarios)
-						{
-							<option value="@u.Id_usuario">@u.Apellido, @u.Nombre</option>
-						}
-					}
-				</select>
-				<span asp-validation-for="Id_usuario_finalizador" class="text-danger"></span>
 			</div>
 			<div class="mb-3 form-check">
 				<input asp-for="Estado" class="form-check-input" />

@@ -1,0 +1,45 @@
+@model Inmobiliaria.Models.Pago
+
+@{
+	ViewData["Title"] = "Cargar Pago";
+	var reserva = ViewBag.Reserva as Inmobiliaria.Reserva;
+}
+
+<h1>Cargar nuevo pago</h1>
+
+@if (reserva != null)
+{
+	<p class="text-muted">
+		Reserva #@reserva.Id_reserva - @reserva.Fecha_inicio.ToString("dd/MM/yyyy") a @reserva.Fecha_fin.ToString("dd/MM/yyyy")
+	</p>
+}
+
+<div class="row">
+	<div class="col-md-6">
+		<form asp-action="Create" method="post">
+			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+			<input type="hidden" asp-for="Id_reserva" />
+			<div class="mb-3">
+				<label asp-for="Concepto" class="form-label">Concepto</label>
+				<input asp-for="Concepto" class="form-control" />
+				<span asp-validation-for="Concepto" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Fecha_pago" class="form-label">Fecha de pago</label>
+				<input asp-for="Fecha_pago" type="date" class="form-control" />
+				<span asp-validation-for="Fecha_pago" class="text-danger"></span>
+			</div>
+			<div class="mb-3">
+				<label asp-for="Importe" class="form-label">Importe</label>
+				<input asp-for="Importe" type="number" step="0.01" class="form-control" />
+				<span asp-validation-for="Importe" class="text-danger"></span>
+			</div>
+			<button type="submit" class="btn btn-primary">Guardar</button>
+			<a asp-action="Index" asp-route-idReserva="@(reserva?.Id_reserva ?? Model.Id_reserva)" class="btn btn-secondary">Volver</a>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	<partial name="_ValidationScriptsPartial" />
+}
