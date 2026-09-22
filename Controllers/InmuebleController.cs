@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Inmobiliaria.Models;
-
+using Microsoft.AspNetCore.Authorization;
 namespace Inmobiliaria.Controllers;
 
+[Authorize]
 public class InmuebleController : Controller
 {
     private readonly IRepositorioInmueble _repositorio;
@@ -18,12 +19,14 @@ public class InmuebleController : Controller
         _repositorioImagen = repositorioImagen;
     }
 
-    public IActionResult Index(int pagina = 1)
+    public IActionResult Index(int pagina = 1, int? idPropietario = null, bool? disponible = null)
     {
         const int tamanoPagina = 5;
-        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina);
+        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina, idPropietario, disponible);
         ViewData["Cantidad"] = inmuebles.Count();
         ViewBag.PaginaActual = pagina;
+        ViewBag.FiltroPropietario = idPropietario;
+        ViewBag.FiltroDisponible = disponible;
         CargarListas();
         return View(inmuebles);
     }
@@ -103,6 +106,7 @@ public class InmuebleController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Administrador")]
     public IActionResult Delete(int id)
     {
         var inmueble = _repositorio.ObtenerPorId(id);
@@ -117,6 +121,7 @@ public class InmuebleController : Controller
     [HttpPost]
     [ActionName("Delete")]
     [ValidateAntiForgeryToken]
+    [Authorize(Roles = "Administrador")]
     public IActionResult DeleteConfirmado(int id)
     {
         int filasAfectadas = _repositorio.Baja(id);
@@ -225,4 +230,6 @@ public class InmuebleController : Controller
         var lista = _repositorio.BuscarDisponiblesPorFechas(fechaInicio.Value, fechaFin.Value);
         return View(lista);
     }
+
+
 }
