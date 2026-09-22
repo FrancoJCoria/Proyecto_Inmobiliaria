@@ -65,7 +65,7 @@ public class PagoController : Controller
         }
         ViewBag.Reserva = reserva;
         CargarListas();
-        return View(new Pago { Id_reserva = idReserva });
+        return View(new Pago { Id_reserva = idReserva, Fecha_pago = DateTime.Now });
     }
 
     [HttpPost]
