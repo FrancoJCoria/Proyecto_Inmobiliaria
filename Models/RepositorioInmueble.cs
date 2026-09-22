@@ -139,29 +139,42 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
     {
         return new Inmueble
         {
-            Id_inmueble = lector.GetInt32(lector.GetOrdinal("id_inmueble")),
-            Direccion = lector.IsDBNull(lector.GetOrdinal("direccion")) 
-                ? "" 
-                : lector.GetString(lector.GetOrdinal("direccion")),
-            Cupo = lector.IsDBNull(lector.GetOrdinal("cupo")) 
-                ? 0 
-                : Convert.ToInt32(lector.GetValue(lector.GetOrdinal("cupo"))),
-            Precio_dia = lector.IsDBNull(lector.GetOrdinal("precio_dia")) 
-                ? 0m 
-                : Convert.ToDecimal(lector.GetValue(lector.GetOrdinal("precio_dia"))),
-            Porcentaje_reserva = lector.IsDBNull(lector.GetOrdinal("porcentaje_reserva")) 
-                ? 0m 
-                : Convert.ToDecimal(lector.GetValue(lector.GetOrdinal("porcentaje_reserva"))),
-            Disponible = !lector.IsDBNull(lector.GetOrdinal("disponible")) 
-                && Convert.ToBoolean(lector.GetValue(lector.GetOrdinal("disponible"))),
-            Portada = lector.IsDBNull(lector.GetOrdinal("portada")) 
-                ? "" 
-                : lector.GetString(lector.GetOrdinal("portada")),
-            Id_propietario = Convert.ToInt32(lector.GetValue(lector.GetOrdinal("id_propietario"))),
-            Id_tipo = Convert.ToInt32(lector.GetValue(lector.GetOrdinal("id_tipo"))),
-            Estado = !lector.IsDBNull(lector.GetOrdinal("estado")) 
-                && Convert.ToBoolean(lector.GetValue(lector.GetOrdinal("estado")))
+            Id_inmueble = lector.GetInt32("id_inmueble"),
+            Direccion = lector.IsDBNull(lector.GetOrdinal("direccion"))
+                ? ""
+                : lector.GetString("direccion"),
+            Cupo = lector.IsDBNull(lector.GetOrdinal("cupo"))
+                ? 0
+                : lector.GetInt32("cupo"),
+            Precio_dia = lector.IsDBNull(lector.GetOrdinal("precio_dia"))
+                ? 0m
+                : lector.GetDecimal("precio_dia"),
+            Porcentaje_reserva = lector.IsDBNull(lector.GetOrdinal("porcentaje_reserva"))
+                ? 0m
+                : lector.GetDecimal("porcentaje_reserva"),
+            Disponible = LeerBool(lector, "disponible"),
+            Portada = lector.IsDBNull(lector.GetOrdinal("portada"))
+                ? ""
+                : lector.GetString("portada"),
+            Id_propietario = lector.GetInt32("id_propietario"),
+            Id_tipo = lector.GetInt32("id_tipo"),
+            Estado = LeerBool(lector, "estado")
         };
+    }
+
+    private static bool LeerBool(MySqlDataReader lector, string columna)
+    {
+        int ordinal = lector.GetOrdinal(columna);
+        if (lector.IsDBNull(ordinal)) return false;
+
+        object valor = lector.GetValue(ordinal);
+        if (valor is bool booleano) return booleano;
+        if (valor is string texto)
+        {
+            if (texto == "1" || texto.Trim().Equals("true", StringComparison.OrdinalIgnoreCase)) return true;
+            if (texto == "0" || texto.Trim().Equals("false", StringComparison.OrdinalIgnoreCase)) return false;
+        }
+        return Convert.ToInt32(valor) != 0;
     }
 
     private static void BindParams(MySqlCommand comando, Inmueble inmueble)

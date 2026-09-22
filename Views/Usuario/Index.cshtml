@@ -20,6 +20,7 @@
 			<th>@Html.DisplayNameFor(model => model.Email)</th>
 			<th>@Html.DisplayNameFor(model => model.Nombre)</th>
 			<th>@Html.DisplayNameFor(model => model.Apellido)</th>
+			<th>Avatar</th>
 			<th>@Html.DisplayNameFor(model => model.Rol)</th>
 			<th>@Html.DisplayNameFor(model => model.Estado)</th>
 			<th></th>
@@ -33,6 +34,16 @@
 				<td>@item.Email</td>
 				<td>@item.Nombre</td>
 				<td>@item.Apellido</td>
+				<td>
+					@if (!string.IsNullOrEmpty(item.Avatar))
+					{
+						<img src="@(item.Avatar + "?" + rnd.Next())" width="40" height="40" class="rounded-circle" />
+					}
+					else
+					{
+						<img src="https://ui-avatars.com/api/?rounded=true&name=@item.Nombre+@item.Apellido" width="40" height="40" class="rounded-circle" />
+					}
+				</td>
 				<td>@item.Rol</td>
 				<td>
 					@if (item.Estado)

@@ -8,7 +8,7 @@
 
 <div class="row">
 	<div class="col-md-5">
-		<form asp-action="Edit" method="post">
+		<form asp-action="Edit" method="post" enctype="multipart/form-data">
 			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
 			<input type="hidden" name="id" value="@Model.Id_usuario" />
 			<input type="hidden" asp-for="Id_usuario" />
@@ -20,7 +20,7 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Clave" class="form-label"></label>
-				<input asp-for="Clave" type="password" value="@Model.Clave" class="form-control" />
+				<input asp-for="Clave" type="password" placeholder="Dejar en blanco para no cambiar" class="form-control" />
 				<span asp-validation-for="Clave" class="text-danger"></span>
 			</div>
 			<div class="mb-3">
@@ -33,22 +33,44 @@
 				<input asp-for="Apellido" class="form-control" />
 				<span asp-validation-for="Apellido" class="text-danger"></span>
 			</div>
+			@if (User.IsInRole("Administrador"))
+			{
+				<div class="mb-3">
+					<label asp-for="Rol" class="form-label"></label>
+					<select asp-for="Rol" class="form-select">
+						<option value="">-- Elegir rol --</option>
+						<option value="Administrador">Administrador</option>
+						<option value="Empleado">Empleado</option>
+					</select>
+					<span asp-validation-for="Rol" class="text-danger"></span>
+				</div>
+			}
+			else
+			{
+				<input type="hidden" asp-for="Rol" />
+			}
 			<div class="mb-3">
-				<label asp-for="Rol" class="form-label"></label>
-				<select asp-for="Rol" class="form-select">
-					<option value="">-- Elegir rol --</option>
-					<option value="Administrador">Administrador</option>
-					<option value="Empleado">Empleado</option>
-				</select>
-				<span asp-validation-for="Rol" class="text-danger"></span>
-			</div>
-			<div class="mb-3">
-				<label asp-for="Avatar" class="form-label"></label>
-				<input asp-for="Avatar" class="form-control" />
-				<span asp-validation-for="Avatar" class="text-danger"></span>
+				<label class="form-label d-block">Avatar</label>
+				@if (!string.IsNullOrEmpty(Model.Avatar))
+				{
+					<img src="@Model.Avatar" width="80" class="img-thumbnail mb-2" />
+				}
+				else
+				{
+					<img src="https://ui-avatars.com/api/?rounded=true&name=@Model.Nombre+@Model.Apellido" width="80" class="img-thumbnail mb-2" />
+				}
+				<input asp-for="AvatarFile" type="file" accept="image/*" class="form-control" />
+				<span asp-validation-for="AvatarFile" class="text-danger"></span>
 			</div>
 			<button type="submit" class="btn btn-primary">Guardar</button>
-			<a asp-action="Index" class="btn btn-secondary">Volver</a>
+			@if (User.IsInRole("Administrador"))
+			{
+				<a asp-action="Index" class="btn btn-secondary">Volver</a>
+			}
+			else
+			{
+				<a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Volver</a>
+			}
 		</form>
 	</div>
 </div>

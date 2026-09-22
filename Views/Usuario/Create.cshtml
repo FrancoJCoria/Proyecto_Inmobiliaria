@@ -8,7 +8,7 @@
 
 <div class="row">
 	<div class="col-md-5">
-		<form asp-action="Create" method="post">
+		<form asp-action="Create" method="post" enctype="multipart/form-data">
 			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
 			<div class="mb-3">
 				<label asp-for="Email" class="form-label"></label>
@@ -40,9 +40,9 @@
 				<span asp-validation-for="Rol" class="text-danger"></span>
 			</div>
 			<div class="mb-3">
-				<label asp-for="Avatar" class="form-label"></label>
-				<input asp-for="Avatar" class="form-control" />
-				<span asp-validation-for="Avatar" class="text-danger"></span>
+				<label asp-for="AvatarFile" class="form-label">Avatar</label>
+				<input asp-for="AvatarFile" type="file" accept="image/*" class="form-control" />
+				<span asp-validation-for="AvatarFile" class="text-danger"></span>
 			</div>
 			<button type="submit" class="btn btn-primary">Crear</button>
 			<a asp-action="Index" class="btn btn-secondary">Volver</a>

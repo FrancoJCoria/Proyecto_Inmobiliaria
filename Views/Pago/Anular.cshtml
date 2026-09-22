@@ -1,0 +1,28 @@
+@model Inmobiliaria.Models.Pago
+
+@{
+	ViewData["Title"] = "Anular Pago";
+}
+
+<h1>Anular Pago</h1>
+
+<div class="alert alert-warning">¿Confirma que desea anular este pago? Se seguirá mostrando en el listado con estado "Anulado".</div>
+
+<dl class="row">
+	<dt class="col-sm-4">Nro de pago</dt>
+	<dd class="col-sm-8">@Model.Id_pago</dd>
+	<dt class="col-sm-4">Concepto</dt>
+	<dd class="col-sm-8">@Model.Concepto</dd>
+	<dt class="col-sm-4">Fecha de pago</dt>
+	<dd class="col-sm-8">@Model.Fecha_pago.ToString("dd/MM/yyyy")</dd>
+	<dt class="col-sm-4">Importe</dt>
+	<dd class="col-sm-8">@Model.Importe.ToString("C")</dd>
+	<dt class="col-sm-4">Reserva</dt>
+	<dd class="col-sm-8">@Model.Id_reserva</dd>
+</dl>
+
+<form asp-action="Anular" method="post">
+	<input type="hidden" name="id" value="@Model.Id_pago" />
+	<button type="submit" class="btn btn-danger">Anular</button>
+	<a asp-action="Index" asp-route-idReserva="@Model.Id_reserva" class="btn btn-secondary">Volver</a>
+</form>

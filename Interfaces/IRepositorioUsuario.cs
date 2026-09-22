@@ -5,6 +5,7 @@ public interface IRepositorioUsuario
     int Baja (Usuario u);
 
     int Modificacion (Usuario u);
+    int ActualizarClave(int id, string clave);
     Usuario? ObtenerPorId(int id);
     Usuario? ObetenerPorEmail(string email);
 

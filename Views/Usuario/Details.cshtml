@@ -18,7 +18,16 @@
 	<dt class="col-sm-3">@Html.DisplayNameFor(model => model.Rol)</dt>
 	<dd class="col-sm-9">@Model.Rol</dd>
 	<dt class="col-sm-3">@Html.DisplayNameFor(model => model.Avatar)</dt>
-	<dd class="col-sm-9">@Model.Avatar</dd>
+	<dd class="col-sm-9">
+		@if (!string.IsNullOrEmpty(Model.Avatar))
+		{
+			<img src="@Model.Avatar" width="100" class="img-thumbnail" />
+		}
+		else
+		{
+			<img src="https://ui-avatars.com/api/?rounded=true&name=@Model.Nombre+@Model.Apellido" width="100" class="img-thumbnail" />
+		}
+	</dd>
 	<dt class="col-sm-3">@Html.DisplayNameFor(model => model.Estado)</dt>
 	<dd class="col-sm-9">
 		@if (Model.Estado)
