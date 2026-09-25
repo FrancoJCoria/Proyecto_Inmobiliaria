@@ -2,8 +2,8 @@
 
 @{
 	ViewData["Title"] = "Crear Reserva";
-	var inquilinos = ViewBag.Inquilinos as IList<Inmobiliaria.Models.Inquilino>;
-	var inmuebles = ViewBag.Inmuebles as IList<Inmobiliaria.Models.Inmueble>;
+	// Ningun desplegable trae el catalogo: las opciones llegan por AJAX cuando el usuario
+	// escribe. En Create no hay nada elegido todavia, asi que no hay nada que preseleccionar.
 }
 
 <h1>Crear Reserva</h1>
@@ -29,34 +29,18 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_inmueble" class="form-label">Inmueble</label>
-				<input type="text" id="busquedaInmueble" class="form-control mb-2"
-					placeholder="Escribí para filtrar por dirección..." autocomplete="off" />
-				<select asp-for="Id_inmueble" class="form-select" size="5">
+				<select asp-for="Id_inmueble" class="form-select">
 					<option value="0">-- Elegir inmueble --</option>
-					@if (inmuebles != null)
-					{
-						@foreach (var m in inmuebles)
-						{
-							<option value="@m.Id_inmueble">@m.Direccion (cupo @m.Cupo)</option>
-						}
-					}
 				</select>
+				<div class="form-text">Escribí al menos 3 caracteres de la dirección para buscar.</div>
 				<span asp-validation-for="Id_inmueble" class="text-danger"></span>
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_inquilino" class="form-label">Inquilino</label>
-				<input type="text" id="busquedaInquilino" class="form-control mb-2"
-					placeholder="Escribí para filtrar por apellido, nombre o DNI..." autocomplete="off" />
-				<select asp-for="Id_inquilino" class="form-select" size="5">
+				<select asp-for="Id_inquilino" class="form-select">
 					<option value="0">-- Elegir inquilino --</option>
-					@if (inquilinos != null)
-					{
-						@foreach (var i in inquilinos)
-						{
-							<option value="@i.Id_inquilino">@i.Apellido, @i.Nombre (@i.Dni)</option>
-						}
-					}
 				</select>
+				<div class="form-text">Se busca por apellido, nombre o DNI.</div>
 				<span asp-validation-for="Id_inquilino" class="text-danger"></span>
 			</div>
 			<div class="mb-3 form-check">
@@ -73,7 +57,7 @@
 	<partial name="_ValidationScriptsPartial" />
 	<partial name="_ScriptDesplegable" />
 	<script>
-		activarBusquedaDesplegable('#busquedaInmueble', '#Id_inmueble', '@Url.Action("BuscarInmuebles", "Reserva")', '-- Elegir inmueble --');
-		activarBusquedaDesplegable('#busquedaInquilino', '#Id_inquilino', '@Url.Action("BuscarInquilinos", "Reserva")', '-- Elegir inquilino --');
+		activarDesplegable('#Id_inmueble', '@Url.Action("BuscarInmuebles", "Reserva")', '-- Elegir inmueble --', 0);
+		activarDesplegable('#Id_inquilino', '@Url.Action("BuscarInquilinos", "Reserva")', '-- Elegir inquilino --', 0);
 	</script>
 }

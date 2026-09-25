@@ -47,14 +47,14 @@ public class ReservaController : Controller
         {
             return NotFound();
         }
-        CargarUsuarios();
+        CargarUsuariosDeDetails(reserva);
         return View(reserva);
     }
 
     [HttpGet]
     public IActionResult Create()
     {
-        CargarListas();
+        CargarSeleccionado(null);
         return View();
     }
 
@@ -64,14 +64,14 @@ public class ReservaController : Controller
     {
         if (!ModelState.IsValid)
         {
-            CargarListas();
+            CargarSeleccionado(reserva);
             return View(reserva);
         }
 
         if (reserva.Fecha_fin < reserva.Fecha_inicio)
         {
             ModelState.AddModelError("Fecha_fin", "La fecha de fin no puede ser anterior a la de inicio.");
-            CargarListas();
+            CargarSeleccionado(reserva);
             return View(reserva);
         }
 
@@ -80,7 +80,7 @@ public class ReservaController : Controller
         if (idGenerado == 0)
         {
             ModelState.AddModelError("", "No se pudo crear la reserva.");
-            CargarListas();
+            CargarSeleccionado(reserva);
             return View(reserva);
         }
         return RedirectToAction("Index");
@@ -94,7 +94,7 @@ public class ReservaController : Controller
         {
             return NotFound();
         }
-        CargarListas();
+        CargarSeleccionado(reserva);
         return View(reserva);
     }
 
@@ -104,14 +104,14 @@ public class ReservaController : Controller
     {
         if (!ModelState.IsValid)
         {
-            CargarListas();
+            CargarSeleccionado(reserva);
             return View(reserva);
         }
 
         if (reserva.Fecha_fin < reserva.Fecha_inicio)
         {
             ModelState.AddModelError("Fecha_fin", "La fecha de fin no puede ser anterior a la de inicio.");
-            CargarListas();
+            CargarSeleccionado(reserva);
             return View(reserva);
         }
 
@@ -128,7 +128,7 @@ public class ReservaController : Controller
         if (filasAfectadas == 0)
         {
             ModelState.AddModelError("", "No se pudo modificar la reserva.");
-            CargarListas();
+            CargarSeleccionado(reserva);
             return View(reserva);
         }
         return RedirectToAction("Index");
@@ -360,18 +360,69 @@ public IActionResult Informes()
         return int.TryParse(idClaim, out var id) ? id : null;
     }
 
-    private void CargarListas(string? busquedaInmueble = null, string? busquedaInquilino = null)
+    // Los desplegables de inmueble e inquilino se resuelven por AJAX contra BuscarInmuebles
+    // y BuscarInquilinos: la vista nunca recibe el catálogo completo. Lo único que se trae
+    // por id es la etiqueta de lo que ya estaba elegido, para que Edit muestre el valor
+    // vigente y Create no muestre nada. Son consultas por clave primaria, no listados.
+    private void CargarSeleccionado(Reserva? reserva)
     {
-        // Los dos términos van separados porque cada desplegable se busca por su cuenta.
-        // ViewBag.Usuarios no se busca: acá solo se usa para resolver nombres.
-        ViewBag.Inquilinos = _repositorioInquilino.ObtenerTodos(busquedaInquilino);
-        ViewBag.Inmuebles = _repositorioInmueble.ObtenerTodos(busquedaInmueble);
-        CargarUsuarios();
+        ViewBag.InmuebleSeleccionado = null;
+        ViewBag.InquilinoSeleccionado = null;
+
+        if (reserva == null)
+        {
+            return;
+        }
+
+        // Las etiquetas se arman con una consulta por id, y no con el nombre del JOIN de
+        // la reserva, para que coincidan exactamente con las que devuelve BuscarInmuebles
+        // y BuscarInquilinos. Si no coincidieran, al elegir una opcion por busqueda la
+        // etiqueta del desplegable cambiaria sola.
+        if (reserva.Id_inmueble > 0)
+        {
+            var inmueble = _repositorioInmueble.ObtenerPorId(reserva.Id_inmueble);
+            if (inmueble != null)
+            {
+                ViewBag.InmuebleSeleccionado = new OpcionDesplegable
+                {
+                    Id = inmueble.Id_inmueble,
+                    Etiqueta = $"{inmueble.Direccion} (cupo {inmueble.Cupo})"
+                };
+            }
+        }
+
+        if (reserva.Id_inquilino > 0)
+        {
+            var inquilino = _repositorioInquilino.ObtenerPorId(reserva.Id_inquilino);
+            if (inquilino != null)
+            {
+                ViewBag.InquilinoSeleccionado = new OpcionDesplegable
+                {
+                    Id = inquilino.Id_inquilino,
+                    Etiqueta = $"{inquilino.Apellido}, {inquilino.Nombre} ({inquilino.Dni})"
+                };
+            }
+        }
     }
 
-    private void CargarUsuarios()
+    // En Details solo hacen falta los nombres de los dos usuarios que tocaron la reserva,
+    // asi que se consultan por id en vez de bajar la tabla Usuario entera para usar dos
+    // filas en la vista.
+    private void CargarUsuariosDeDetails(Reserva reserva)
     {
-        ViewBag.Usuarios = _repositorioUsuario.ObtenerTodos();
+        ViewBag.UsuarioCreador = ObtenerNombreUsuario(reserva.Id_usuario_creador);
+        ViewBag.UsuarioFinalizador = ObtenerNombreUsuario(reserva.Id_usuario_finalizador);
+    }
+
+    private string? ObtenerNombreUsuario(int idUsuario)
+    {
+        if (idUsuario <= 0)
+        {
+            return null;
+        }
+
+        var usuario = _repositorioUsuario.ObtenerPorId(idUsuario);
+        return usuario == null ? null : $"{usuario.Apellido}, {usuario.Nombre}";
     }
 
     //------------------------------------------------------------------------------------------BUSQUEDA EN LOS DESPLEGABLES------------------------------------------//
@@ -381,7 +432,12 @@ public IActionResult Informes()
     [HttpGet]
     public IActionResult BuscarInquilinos(string? termino)
     {
-        var lista = _repositorioInquilino.ObtenerTodos(termino);
+        if (!BusquedaDesplegable.EsTerminoUtil(termino))
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var lista = _repositorioInquilino.ObtenerTodos(termino!.Trim(), BusquedaDesplegable.MaximoOpciones);
         return Json(lista.Select(i => new
         {
             id = i.Id_inquilino,
@@ -392,7 +448,12 @@ public IActionResult Informes()
     [HttpGet]
     public IActionResult BuscarInmuebles(string? termino)
     {
-        var lista = _repositorioInmueble.ObtenerTodos(termino);
+        if (!BusquedaDesplegable.EsTerminoUtil(termino))
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var lista = _repositorioInmueble.ObtenerTodos(termino!.Trim(), BusquedaDesplegable.MaximoOpciones);
         return Json(lista.Select(m => new
         {
             id = m.Id_inmueble,
