@@ -46,13 +46,28 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
         return comando.ExecuteNonQuery();
     }
 
-    public IList<TipoInmueble> ObtenerTodos()
+    // Lista completa para el desplegable de tipos, con filtro opcional en el servidor.
+    public IList<TipoInmueble> ObtenerTodos(string? busqueda = null)
     {
         var lista = new List<TipoInmueble>();
         using var conexion = new MySqlConnection(connectionString);
-        string consultaSql = @"SELECT id_tipo, nombre FROM TipoInmueble";
+
+        string consultaSql = "SELECT id_tipo, nombre FROM TipoInmueble WHERE 1 = 1";
+
+        if (!string.IsNullOrWhiteSpace(busqueda))
+        {
+            consultaSql += " AND nombre LIKE @busqueda";
+        }
+
+        consultaSql += " ORDER BY nombre ASC;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
+        if (!string.IsNullOrWhiteSpace(busqueda))
+        {
+            // El % va en el valor del parámetro, nunca en el texto de la consulta.
+            comando.Parameters.AddWithValue("@busqueda", $"%{busqueda.Trim()}%");
+        }
+
         conexion.Open();
         using var lector = comando.ExecuteReader();
 

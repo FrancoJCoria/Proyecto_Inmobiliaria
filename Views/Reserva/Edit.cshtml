@@ -36,7 +36,9 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_inmueble" class="form-label">Inmueble</label>
-				<select asp-for="Id_inmueble" class="form-select">
+				<input type="text" id="busquedaInmueble" class="form-control mb-2"
+					placeholder="Escribí para filtrar por dirección..." autocomplete="off" />
+				<select asp-for="Id_inmueble" class="form-select" size="5">
 					<option value="0">-- Elegir inmueble --</option>
 					@if (inmuebles != null)
 					{
@@ -50,8 +52,10 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_inquilino" class="form-label">Inquilino</label>
-				<select asp-for="Id_inquilino" class="form-select">
-					<option value="">-- Elegir inquilino --</option>
+				<input type="text" id="busquedaInquilino" class="form-control mb-2"
+					placeholder="Escribí para filtrar por apellido, nombre o DNI..." autocomplete="off" />
+				<select asp-for="Id_inquilino" class="form-select" size="5">
+					<option value="0">-- Elegir inquilino --</option>
 					@if (inquilinos != null)
 					{
 						@foreach (var i in inquilinos)
@@ -74,4 +78,9 @@
 
 @section Scripts {
 	<partial name="_ValidationScriptsPartial" />
+	<partial name="_ScriptDesplegable" />
+	<script>
+		activarBusquedaDesplegable('#busquedaInmueble', '#Id_inmueble', '@Url.Action("BuscarInmuebles", "Reserva")', '-- Elegir inmueble --');
+		activarBusquedaDesplegable('#busquedaInquilino', '#Id_inquilino', '@Url.Action("BuscarInquilinos", "Reserva")', '-- Elegir inquilino --');
+	</script>
 }

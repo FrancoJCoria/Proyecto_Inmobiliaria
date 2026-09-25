@@ -4,10 +4,10 @@
 	ViewData["Title"] = "Pagos";
 	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
 	var reserva = ViewBag.Reserva as Inmobiliaria.Reserva;
-	decimal totalActivo = Model.Where(p => p.Estado).Sum(p => p.Importe);
+	decimal totalActivo = (decimal)(ViewBag.TotalPagado ?? 0m);
 }
 
-<h1>Pagos de la Reserva Nro @reserva!.Id_reserva</h1>
+<h1>Pagos de la Reserva Nro @reserva!.Id_reserva (@cantidad)</h1>
 
 @if (reserva != null)
 {
@@ -77,3 +77,6 @@ else
 {
 	<div class="alert alert-info">No hay pagos cargados para esta reserva.</div>
 }
+
+<!------------------ Controles de paginación ------------------>
+@await Html.PartialAsync("_Paginador")

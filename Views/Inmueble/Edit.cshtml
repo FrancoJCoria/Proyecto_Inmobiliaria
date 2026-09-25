@@ -22,7 +22,9 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_tipo" class="form-label">Tipo de inmueble</label>
-				<select asp-for="Id_tipo" class="form-select">
+				<input type="text" id="busquedaTipo" class="form-control mb-2"
+					placeholder="Escribí para filtrar por tipo..." autocomplete="off" />
+				<select asp-for="Id_tipo" class="form-select" size="5">
 					<option value="0">-- Elegir tipo --</option>
 					@if (tipos != null)
 					{
@@ -36,7 +38,9 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_propietario" class="form-label">Propietario</label>
-				<select asp-for="Id_propietario" class="form-select">
+				<input type="text" id="busquedaPropietario" class="form-control mb-2"
+					placeholder="Escribí para filtrar por apellido, nombre o DNI..." autocomplete="off" />
+				<select asp-for="Id_propietario" class="form-select" size="5">
 					<option value="0">-- Elegir propietario --</option>
 					@if (propietarios != null)
 					{
@@ -80,4 +84,9 @@
 
 @section Scripts {
 	<partial name="_ValidationScriptsPartial" />
+	<partial name="_ScriptDesplegable" />
+	<script>
+		activarBusquedaDesplegable('#busquedaTipo', '#Id_tipo', '@Url.Action("BuscarTipos", "TipoInmueble")', '-- Elegir tipo --');
+		activarBusquedaDesplegable('#busquedaPropietario', '#Id_propietario', '@Url.Action("BuscarPropietarios", "Propietario")', '-- Elegir propietario --');
+	</script>
 }

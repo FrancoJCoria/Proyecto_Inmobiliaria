@@ -132,15 +132,29 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
         }
     }
 
-    public IList<Reserva> ObtenerTodos()
+    public IList<Reserva> ObtenerTodos(int pagina, int tamanoPagina)
     {
         var lista = new List<Reserva>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var conexion = new MySqlConnection(connectionString);
 
-        string consultaSql = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario,
-        estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador FROM Reserva";
+        // El LEFT JOIN trae la dirección del inmueble y el nombre del inquilino para
+        // poder mostrarlos sin cargar la lista completa de inmuebles e inquilinos.
+        // El ORDER BY no es opcional: sin un orden estable el LIMIT/OFFSET repetiría
+        // filas entre páginas y dejaría otras afuera.
+        string consultaSql = @"SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.fecha_fin_efectiva, r.monto_diario,
+        r.estado, r.id_inmueble, r.id_inquilino, r.id_usuario_creador, r.id_usuario_finalizador,
+        COALESCE(i.direccion, '') AS nombre_inmueble,
+        COALESCE(CONCAT(q.apellido, ', ', q.nombre), '') AS nombre_inquilino
+        FROM Reserva r
+        LEFT JOIN Inmueble i ON i.id_inmueble = r.id_inmueble
+        LEFT JOIN Inquilino q ON q.id_inquilino = r.id_inquilino
+        ORDER BY r.id_reserva DESC
+        LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@limit", tamanoPagina);
+        comando.Parameters.AddWithValue("@offset", offset);
         conexion.Open();
         using var lector = comando.ExecuteReader();
 
@@ -156,9 +170,14 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
         Reserva? reserva = null;
         using var conexion = new MySqlConnection(connectionString);
 
-        string consultaSql = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario,
-        estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador
-        FROM Reserva WHERE id_reserva = @id_reserva";
+        string consultaSql = @"SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.fecha_fin_efectiva, r.monto_diario,
+        r.estado, r.id_inmueble, r.id_inquilino, r.id_usuario_creador, r.id_usuario_finalizador,
+        COALESCE(i.direccion, '') AS nombre_inmueble,
+        COALESCE(CONCAT(q.apellido, ', ', q.nombre), '') AS nombre_inquilino
+        FROM Reserva r
+        LEFT JOIN Inmueble i ON i.id_inmueble = r.id_inmueble
+        LEFT JOIN Inquilino q ON q.id_inquilino = r.id_inquilino
+        WHERE r.id_reserva = @id_reserva";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@id_reserva", id);
@@ -172,23 +191,33 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
         return reserva;
     }
 
-    public IList<Reserva> ObtenerVigentes(DateTime desde, DateTime hasta)
+    public IList<Reserva> ObtenerVigentes(DateTime desde, DateTime hasta, int pagina, int tamanoPagina)
     {
         var lista = new List<Reserva>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var conexion = new MySqlConnection(connectionString);
 
-        string consultaSql = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario,
-        estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador
-        FROM Reserva
-        WHERE estado = 1
-          AND (fecha_fin_efectiva IS NULL)
-          AND fecha_inicio <= @hasta
-          AND fecha_fin >= @desde
-        ORDER BY fecha_inicio ASC;";
+        // Son las reservas activas y todavía no finalizadas que se superponen con el
+        // rango de fechas pedido.
+        string consultaSql = @"SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.fecha_fin_efectiva, r.monto_diario,
+        r.estado, r.id_inmueble, r.id_inquilino, r.id_usuario_creador, r.id_usuario_finalizador,
+        COALESCE(i.direccion, '') AS nombre_inmueble,
+        COALESCE(CONCAT(q.apellido, ', ', q.nombre), '') AS nombre_inquilino
+        FROM Reserva r
+        LEFT JOIN Inmueble i ON i.id_inmueble = r.id_inmueble
+        LEFT JOIN Inquilino q ON q.id_inquilino = r.id_inquilino
+        WHERE r.estado = 1
+          AND (r.fecha_fin_efectiva IS NULL)
+          AND r.fecha_inicio <= @hasta
+          AND r.fecha_fin >= @desde
+        ORDER BY r.fecha_inicio ASC
+        LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@desde", desde.Date);
         comando.Parameters.AddWithValue("@hasta", hasta.Date);
+        comando.Parameters.AddWithValue("@limit", tamanoPagina);
+        comando.Parameters.AddWithValue("@offset", offset);
         conexion.Open();
         using var lector = comando.ExecuteReader();
 
@@ -199,21 +228,30 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
         return lista;
     }
 
-    public IList<Reserva> ObtenerPorTerminar(int dias)
+    public IList<Reserva> ObtenerPorTerminar(int dias, int pagina, int tamanoPagina)
     {
         var lista = new List<Reserva>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var conexion = new MySqlConnection(connectionString);
 
-        string consultaSql = @"SELECT id_reserva, fecha_inicio, fecha_fin, fecha_fin_efectiva, monto_diario,
-        estado, id_inmueble, id_inquilino, id_usuario_creador, id_usuario_finalizador
-        FROM Reserva
-        WHERE estado = 1
-          AND (fecha_fin_efectiva IS NULL)
-          AND fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL @dias DAY)
-        ORDER BY fecha_fin ASC;";
+        // Son las reservas activas cuya fecha de fin cae dentro de los próximos "dias".
+        string consultaSql = @"SELECT r.id_reserva, r.fecha_inicio, r.fecha_fin, r.fecha_fin_efectiva, r.monto_diario,
+        r.estado, r.id_inmueble, r.id_inquilino, r.id_usuario_creador, r.id_usuario_finalizador,
+        COALESCE(i.direccion, '') AS nombre_inmueble,
+        COALESCE(CONCAT(q.apellido, ', ', q.nombre), '') AS nombre_inquilino
+        FROM Reserva r
+        LEFT JOIN Inmueble i ON i.id_inmueble = r.id_inmueble
+        LEFT JOIN Inquilino q ON q.id_inquilino = r.id_inquilino
+        WHERE r.estado = 1
+          AND (r.fecha_fin_efectiva IS NULL)
+          AND r.fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL @dias DAY)
+        ORDER BY r.fecha_fin ASC
+        LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@dias", dias);
+        comando.Parameters.AddWithValue("@limit", tamanoPagina);
+        comando.Parameters.AddWithValue("@offset", offset);
         conexion.Open();
         using var lector = comando.ExecuteReader();
 
@@ -222,6 +260,54 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
             lista.Add(LeerReserva(lector));
         }
         return lista;
+    }
+
+    // Cuenta todas las reservas del sistema (para la paginación del listado general).
+    public int Contar()
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = "SELECT COUNT(*) FROM Reserva;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
+    // Cuenta las reservas activas y no finalizadas que se superponen con el rango de fechas (informe "vigentes").
+    public int ContarVigentes(DateTime desde, DateTime hasta)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT COUNT(*)
+        FROM Reserva
+        WHERE estado = 1
+          AND (fecha_fin_efectiva IS NULL)
+          AND fecha_inicio <= @hasta
+          AND fecha_fin >= @desde;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@desde", desde.Date);
+        comando.Parameters.AddWithValue("@hasta", hasta.Date);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
+    // Cuenta las reservas activas cuya fecha de fin cae dentro del plazo indicado (informe "por terminar").
+    public int ContarPorTerminar(int dias)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT COUNT(*)
+        FROM Reserva
+        WHERE estado = 1
+          AND (fecha_fin_efectiva IS NULL)
+          AND fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL @dias DAY);";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@dias", dias);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
     }
 
     private static Reserva LeerReserva(MySqlDataReader lector)
@@ -241,7 +327,9 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
             Id_usuario_creador = lector.GetInt32("id_usuario_creador"),
             Id_usuario_finalizador = lector.IsDBNull(lector.GetOrdinal("id_usuario_finalizador"))
                 ? 0
-                : lector.GetInt32("id_usuario_finalizador")
+                : lector.GetInt32("id_usuario_finalizador"),
+            NombreInmueble = lector.GetString("nombre_inmueble"),
+            NombreInquilino = lector.GetString("nombre_inquilino")
         };
     }
 }

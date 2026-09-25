@@ -237,7 +237,9 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
         return user;
     }
 
-    public IList<Usuario> ObtenerTodos(int pagina = 1, int tamanoPagina = 5)
+    // Versión paginada del listado general. Sin defaults a propósito: si los tuviera,
+    // ObtenerTodos() sin argumentos sería ambiguo entre esta y la lista completa de abajo.
+    public IList<Usuario> ObtenerTodos(int pagina, int tamanoPagina)
     {
         var lista = new List<Usuario>();
         int offset = (pagina - 1) * tamanoPagina;
@@ -269,5 +271,68 @@ public class RepositorioUsuario : RepositorioBase, IRepositorioUsuario
             });
         }
         return lista;
+    }
+
+    //------------------------------------------------------------------------------------------LISTA COMPLETA DE USUARIOS (SIN PAGINAR)------------------------------//
+    // No se filtra por estado a propósito: esta lista se usa para resolver el nombre del
+    // usuario que creó o anuló una reserva o un pago, y si el usuario está dado de baja
+    // su nombre tiene que seguir apareciendo igual. Filtrar por estado dejaría un número
+    // de id en pantalla en lugar del nombre.
+    public IList<Usuario> ObtenerTodos(string? busqueda = null)
+    {
+        var lista = new List<Usuario>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT id_usuario, email, clave, nombre, apellido, avatar, rol, estado
+        FROM Usuario
+        WHERE 1 = 1";
+
+        if (!string.IsNullOrWhiteSpace(busqueda))
+        {
+            consultaSql += " AND (nombre LIKE @busqueda OR apellido LIKE @busqueda OR email LIKE @busqueda)";
+        }
+
+        consultaSql += " ORDER BY apellido, nombre ASC;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        if (!string.IsNullOrWhiteSpace(busqueda))
+        {
+            // El % va en el valor del parámetro, nunca en el texto de la consulta.
+            comando.Parameters.AddWithValue("@busqueda", $"%{busqueda.Trim()}%");
+        }
+
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+
+        while (lector.Read())
+        {
+            lista.Add(new Usuario
+            {
+                Id_usuario = lector.GetInt32("id_usuario"),
+                Email = lector.GetString("email"),
+                Clave = lector.GetString("clave"),
+                Nombre = lector.GetString("nombre"),
+                Apellido = lector.GetString("apellido"),
+                Avatar = lector.IsDBNull(lector.GetOrdinal("avatar")) ? "" : lector.GetString("avatar"),
+                Rol = lector.GetString("rol"),
+                Estado = lector.GetBoolean("estado")
+            });
+        }
+        return lista;
+    }
+
+    //------------------------------------------------------------------------------------------CONTAR USUARIOS (TOTAL REAL PARA LA PAGINACION)------------------------------//
+    // Ojo: aca NO se filtra por estado a proposito. El listado paginado de arriba tampoco
+    // lo hace, porque la vista de usuarios muestra el badge Activo/Inactivo. Si el conteo
+    // filtrara y el listado no, el titulo y la tabla dejarian de coincidir.
+    public int Contar()
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = "SELECT COUNT(*) FROM Usuario;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
     }
 }

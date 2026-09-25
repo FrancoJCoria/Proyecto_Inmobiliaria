@@ -1,0 +1,35 @@
+@* Define la función que agrega búsqueda en servidor a un <select>.
+   Cada vista la incluye y después la llama con sus propios datos, por ejemplo:
+     activarBusquedaDesplegable('#busquedaPropietario', '#Id_propietario',
+         '/Propietario/BuscarPropietarios', '-- Elegir propietario --');
+
+   Se busca por AJAX y no con un formulario GET a propósito: al filtrar un desplegable
+   no se pierden las fechas ni los montos que ya están cargados en el formulario. *@
+<script>
+	// "valorVacio" es el value de la opción de arranque. Por defecto es '0', que es lo que
+	// necesitan los desplegables de los formularios; los filtros de los listados usan ''
+	// porque "sin filtro" no es lo mismo que "el id 0".
+	function activarBusquedaDesplegable(inputBusqueda, select, url, textoVacio, valorVacio = '0') {
+		// El debounce evita una consulta por cada tecla: solo espera a que el usuario
+		// se quede un momento sin escribir.
+		let temporizador;
+		$(inputBusqueda).on('input', function () {
+			clearTimeout(temporizador);
+			temporizador = setTimeout(function () {
+				// Se guarda la selección actual porque, si el elemento sigue entre los
+				// resultados, no hay que obligar a elegirlo de nuevo.
+				let seleccionActual = $(select).val();
+				$.get(url, { termino: $(inputBusqueda).val() }, function (datos) {
+					$(select).empty();
+					$(select).append($('<option></option>').val(valorVacio).text(textoVacio));
+					datos.forEach(function (item) {
+						$(select).append($('<option></option>').val(item.id).text(item.etiqueta));
+					});
+					if (seleccionActual && $(select).find('option[value="' + seleccionActual + '"]').length > 0) {
+						$(select).val(seleccionActual);
+					}
+				});
+			}, 300);
+		});
+	}
+</script>

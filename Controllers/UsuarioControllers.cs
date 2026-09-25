@@ -17,10 +17,21 @@ public class UsuarioController : Controller
 
 
     [Authorize(Roles = "Administrador")]
-    public IActionResult Index()
+    public IActionResult Index(int pagina = 1)
     {
-        var usuarios = _repositorio.ObtenerTodos();
-        ViewData["Cantidad"] = usuarios.Count();
+        const int tamanoPagina = 5;
+
+        int total = _repositorio.Contar();
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        var usuarios = _repositorio.ObtenerTodos(pagina, tamanoPagina);
+
+        // Antes este Index no recibia "pagina", por eso los botones de la vista
+        // apuntaban siempre a la pagina 1 y 2 y no avanzaban a ningun lado.
+        ViewData["Cantidad"] = total;
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
         return View(usuarios);
     }
 

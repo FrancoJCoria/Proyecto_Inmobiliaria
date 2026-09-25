@@ -19,8 +19,10 @@ public class PagoController : Controller
         _repositorioUsuario = repositorioUsuario;
     }
 
-    public IActionResult Index(int idReserva)
+    public IActionResult Index(int idReserva, int pagina = 1)
     {
+        const int tamanoPagina = 5;
+
         if (idReserva <= 0)
         {
             return RedirectToAction("Index", "Reserva");
@@ -32,9 +34,18 @@ public class PagoController : Controller
             return NotFound();
         }
 
-        var pagos = _repositorio.ObtenerPorReserva(idReserva);
+        int total = _repositorio.ContarPorReserva(idReserva);
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        var pagos = _repositorio.ObtenerPorReserva(idReserva, pagina, tamanoPagina);
         ViewBag.Reserva = reserva;
-        ViewData["Cantidad"] = pagos.Count();
+        // El total se consulta a la base, no se suma en la vista: si se sumara sobre el
+        // Model, al paginar contaría solo los pagos de esta página.
+        ViewBag.TotalPagado = _repositorio.TotalPagadoActivo(idReserva);
+        ViewData["Cantidad"] = total;
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
         CargarListas();
         return View(pagos);
     }

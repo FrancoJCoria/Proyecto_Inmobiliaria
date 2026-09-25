@@ -3,7 +3,6 @@
 @{
     ViewData["Title"] = "Inquilinos";
     int cantidad = (int)(ViewData["Cantidad"] ?? 0);
-    int paginaActual = (int)(ViewBag.PaginaActual ?? 1);
     string saludo = (string)(ViewBag.Otro ?? "");}
 
 <h1>Listado de Inquilinos (@cantidad)</h1>
@@ -55,25 +54,6 @@
 {<div class="alert alert-info">No hay inquilinos cargados todavía.</div>}
 
 <!--                                                                                                ------------      PAGINACIO   ---------------                           -->
-<div class="d-flex justify-content-center align-items-center gap-2 mt-4">
-    @* BOTON ANTERIOR *@
-    @if (paginaActual > 1){ <a asp-action="Index" asp-route-pagina="@(paginaActual - 1)" class="btn btn-outline-primary">&larr; Anterior</a>}
-    else
-    {
-        <button class="btn btn-outline-secondary" disabled>&larr; Anterior</button>}
-
-    @* Indicador *@
-    <span class="badge bg-light text-dark border px-3 py-2 fs-6">@paginaActual</span>
-
-    @* Botón Siguiente *@
-    @if (cantidad == 5)
-    {
-        <a asp-action="Index" asp-route-pagina="@(paginaActual + 1)" class="btn btn-primary">
-            Siguiente &rarr;
-        </a>
-    }
-    else
-    {
-        <button class="btn btn-secondary" disabled>Siguiente &rarr;</button>
-    }
-</div>
+@* El partial compartido se encarga de mostrar "Página X de Y" y de armar los links
+   preservando los filtros de la URL. Solo se dibuja si hay más de una página. *@
+@await Html.PartialAsync("_Paginador")

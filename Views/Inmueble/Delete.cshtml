@@ -2,10 +2,6 @@
 
 @{
 	ViewData["Title"] = "Eliminar Inmueble";
-	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
-	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
-	var duenio = propietarios?.FirstOrDefault(p => p.Id_propietario == Model.Id_propietario);
-	var tipo = tipos?.FirstOrDefault(t => t.Id_tipo == Model.Id_tipo);
 }
 
 <h1>Eliminar Inmueble</h1>
@@ -16,9 +12,9 @@
 	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Direccion)</dt>
 	<dd class="col-sm-8">@Model.Direccion</dd>
 	<dt class="col-sm-4">Tipo de inmueble</dt>
-	<dd class="col-sm-8">@(tipo != null ? tipo.Nombre : Model.Id_tipo.ToString())</dd>
+	<dd class="col-sm-8">@Model.NombreTipo</dd>
 	<dt class="col-sm-4">Propietario</dt>
-	<dd class="col-sm-8">@(duenio != null ? duenio.Apellido + ", " + duenio.Nombre : Model.Id_propietario.ToString())</dd>
+	<dd class="col-sm-8">@Model.NombrePropietario</dd>
 	<dt class="col-sm-4">@Html.DisplayNameFor(model => model.Cupo)</dt>
 	<dd class="col-sm-8">@Model.Cupo personas</dd>
 	<dt class="col-sm-4">Precio por dia</dt>

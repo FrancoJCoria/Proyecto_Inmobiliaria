@@ -7,13 +7,21 @@
 <p class="text-muted">Elija un informe para consultar.</p>
 
 <div class="list-group w-50">
+	<a asp-action="Index" class="list-group-item list-group-item-action">
+		<h5 class="mb-1">Todos los inmuebles y su dueño</h5>
+		<p class="mb-1 text-muted">Listado completo, con filtros por Estado y por disponibilidad.</p>
+	</a>
+	<a asp-action="PorPropietario" class="list-group-item list-group-item-action">
+		<h5 class="mb-1">Inmuebles de un propietario</h5>
+		<p class="mb-1 text-muted">Lista los inmuebles que le corresponden a un propietario específico, elegido con un buscador.</p>
+	</a>
 	<a asp-action="MasReservados" class="list-group-item list-group-item-action">
 		<h5 class="mb-1">Inmuebles más reservados</h5>
 		<p class="mb-1 text-muted">Lista los inmuebles con mayor cantidad de reservas en los últimos 365 días.</p>
 	</a>
 	<a asp-action="MenosReservados" class="list-group-item list-group-item-action">
-		<h5 class="mb-1">Inmuebles menos reservados</h5>
-		<p class="mb-1 text-muted">Lista los inmuebles con menor cantidad de reservas en el plazo indicado.</p>
+		<h5 class="mb-1">Inmuebles sin reservas</h5>
+		<p class="mb-1 text-muted">Lista los inmuebles sin reservas en el plazo indicado.</p>
 	</a>
 	<a asp-action="BuscarDisponibles" class="list-group-item list-group-item-action">
 		<h5 class="mb-1">Inmuebles libres por fecha</h5>

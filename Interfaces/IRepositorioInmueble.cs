@@ -10,12 +10,25 @@ public interface IRepositorioInmueble
 
     int ModificarPortada(int id, string url);
 
-    IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5, int? idPropietario = null, bool? disponible = null);
+    // Lista completa, sin paginar, para los desplegables. Con "busqueda" filtra en el
+    // servidor por dirección. La versión paginada NO lleva defaults, así
+    // "ObtenerTodos()" sin argumentos cae inequívocamente en esta.
+    IList<Inmueble> ObtenerTodos(string? busqueda = null);
+
+    IList<Inmueble> ObtenerTodos(int pagina, int tamanoPagina, int? idPropietario = null, bool? disponible = null, bool? estado = null);
 
     Inmueble? ObtenerPorId(int id);
 
-    IList<Inmueble> BuscarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin);
+    IList<Inmueble> BuscarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin, int pagina, int tamanoPagina);
     
-    IList<Inmueble> ObtenerMasReservados();
-    IList<Inmueble> ObtenerMenosReservados(int cantidad);
+    IList<Inmueble> ObtenerMasReservados(int pagina, int tamanoPagina);
+    IList<Inmueble> ObtenerMenosReservados(int cantidad, int pagina, int tamanoPagina);
+
+    int Contar(int? idPropietario = null, bool? disponible = null, bool? estado = null);
+
+    int ContarMasReservados();
+
+    int ContarMenosReservados(int cantidad);
+
+    int ContarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin);
 }

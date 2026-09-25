@@ -87,17 +87,21 @@ public class RepositorioPago : RepositorioBase, IRepositorioPago
         }
     }
 
-    public IList<Pago> ObtenerPorReserva(int idReserva)
+    public IList<Pago> ObtenerPorReserva(int idReserva, int pagina, int tamanoPagina)
     {
         var lista = new List<Pago>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var conexion = new MySqlConnection(connectionString);
 
         string consultaSql = @"SELECT id_pago, concepto, fecha_pago, importe, estado, id_reserva, id_usuario_creador, id_usuario_anulador
         FROM Pago WHERE id_reserva = @id_reserva
-        ORDER BY fecha_pago ASC, id_pago ASC;";
+        ORDER BY fecha_pago ASC, id_pago ASC
+        LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@id_reserva", idReserva);
+        comando.Parameters.AddWithValue("@limit", tamanoPagina);
+        comando.Parameters.AddWithValue("@offset", offset);
         conexion.Open();
         using var lector = comando.ExecuteReader();
 
@@ -126,6 +130,34 @@ public class RepositorioPago : RepositorioBase, IRepositorioPago
             pago = LeerPago(lector);
         }
         return pago;
+    }
+
+    // Cuenta los pagos de una reserva puntual (para la paginación del listado de pagos).
+    public int ContarPorReserva(int idReserva)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = "SELECT COUNT(*) FROM Pago WHERE id_reserva = @id_reserva;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@id_reserva", idReserva);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
+    // Suma de lo efectivamente pagado de la reserva. Va en una consulta aparte porque, con
+    // el listado paginado, si se sumara en el controller contaría solo los pagos de la
+    // página visible y el total que se muestra en pantalla sería un número mentiroso.
+    public decimal TotalPagadoActivo(int idReserva)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = "SELECT COALESCE(SUM(importe), 0) FROM Pago WHERE id_reserva = @id_reserva AND estado = 1;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@id_reserva", idReserva);
+        conexion.Open();
+        return Convert.ToDecimal(comando.ExecuteScalar());
     }
 
     private static Pago LeerPago(MySqlDataReader lector)

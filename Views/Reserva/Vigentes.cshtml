@@ -5,8 +5,6 @@
 	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
 	DateTime desde = (DateTime)(ViewData["Desde"] ?? DateTime.Today);
 	DateTime hasta = (DateTime)(ViewData["Hasta"] ?? DateTime.Today);
-	var inmuebles = ViewBag.Inmuebles as IList<Inmobiliaria.Models.Inmueble>;
-	var inquilinos = ViewBag.Inquilinos as IList<Inmobiliaria.Models.Inquilino>;
 }
 
 <h1>Reservas vigentes entre el @desde.ToString("dd/MM/yyyy") y el @hasta.ToString("dd/MM/yyyy") (@cantidad)</h1>
@@ -43,14 +41,12 @@
 		<tbody>
 			@foreach (var item in Model)
 			{
-				var inm = inmuebles?.FirstOrDefault(m => m.Id_inmueble == item.Id_inmueble);
-				var inq = inquilinos?.FirstOrDefault(q => q.Id_inquilino == item.Id_inquilino);
 				<tr>
 					<td>@item.Id_reserva</td>
 					<td>@item.Fecha_inicio.ToString("dd/MM/yyyy")</td>
 					<td>@item.Fecha_fin.ToString("dd/MM/yyyy")</td>
-					<td>@(inm != null ? inm.Direccion : item.Id_inmueble.ToString())</td>
-					<td>@(inq != null ? inq.Apellido + ", " + inq.Nombre : item.Id_inquilino.ToString())</td>
+					<td>@item.NombreInmueble</td>
+					<td>@item.NombreInquilino</td>
 					<td>@item.Monto_diario.ToString("C")</td>
 					<td>
 						<a asp-action="Details" asp-route-id="@item.Id_reserva" class="btn btn-sm btn-info">Detalles</a>
@@ -65,6 +61,9 @@ else
 {
 	<div class="alert alert-info">No hay reservas vigentes en el período indicado.</div>
 }
+
+<!------------------ Controles de paginación ------------------>
+@await Html.PartialAsync("_Paginador")
 
 <p>
 	<a asp-action="Informes" class="btn btn-secondary">Volver a Informes</a>
