@@ -339,6 +339,6 @@ public IActionResult Informes()
     {
         ViewBag.Inquilinos = _repositorioInquilino.ObtenerTodos();
         ViewBag.Usuarios = _repositorioUsuario.ObtenerTodos();
-        ViewBag.Inmuebles = _repositorioInmueble.ObtenerTodos();
+        ViewBag.Inmuebles = _repositorioInmueble.ObtenerTodos(estado: true);
     }
 }

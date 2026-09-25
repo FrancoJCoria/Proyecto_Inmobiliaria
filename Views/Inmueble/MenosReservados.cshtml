@@ -1,14 +1,14 @@
 @model IEnumerable<Inmobiliaria.Models.Inmueble>
 
 @{
-	ViewData["Title"] = "Inmuebles menos reservados";
+	ViewData["Title"] = "Inmuebles sin reservas";
 	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
 	int plazo = (int)(ViewData["Dias"] ?? 30);
 	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
 	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
 }
 
-<h1>Inmuebles menos reservados en los últimos @plazo días (@cantidad)</h1>
+<h1>Inmuebles sin reservas en los últimos @plazo días (@cantidad)</h1>
 
 <form method="get" class="row g-2 mb-3">
 	<div class="col-auto">

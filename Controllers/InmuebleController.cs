@@ -19,14 +19,31 @@ public class InmuebleController : Controller
         _repositorioImagen = repositorioImagen;
     }
 
-    public IActionResult Index(int pagina = 1, int? idPropietario = null, bool? disponible = null)
+    public IActionResult Index(int pagina = 1, int? idPropietario = null, bool? disponible = null, bool? estado = null)
     {
         const int tamanoPagina = 5;
-        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina, idPropietario, disponible);
-        ViewData["Cantidad"] = inmuebles.Count();
+        int total = _repositorio.Contar(idPropietario, disponible, estado);
+        int totalPaginas = (int)Math.Ceiling(total / (double)tamanoPagina);
+        if (totalPaginas < 1)
+        {
+            totalPaginas = 1;
+        }
+        if (pagina < 1)
+        {
+            pagina = 1;
+        }
+        if (pagina > totalPaginas)
+        {
+            pagina = totalPaginas;
+        }
+
+        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina, idPropietario, disponible, estado);
+        ViewData["Cantidad"] = total;
         ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
         ViewBag.FiltroPropietario = idPropietario;
         ViewBag.FiltroDisponible = disponible;
+        ViewBag.FiltroEstado = estado;
         CargarListas();
         return View(inmuebles);
     }

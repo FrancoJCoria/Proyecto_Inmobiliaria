@@ -224,6 +224,51 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
         return lista;
     }
 
+    public int Contar()
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = "SELECT COUNT(*) FROM Reserva;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
+    public int ContarVigentes(DateTime desde, DateTime hasta)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT COUNT(*)
+        FROM Reserva
+        WHERE estado = 1
+          AND (fecha_fin_efectiva IS NULL)
+          AND fecha_inicio <= @hasta
+          AND fecha_fin >= @desde;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@desde", desde.Date);
+        comando.Parameters.AddWithValue("@hasta", hasta.Date);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
+    public int ContarPorTerminar(int dias)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT COUNT(*)
+        FROM Reserva
+        WHERE estado = 1
+          AND (fecha_fin_efectiva IS NULL)
+          AND fecha_fin BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL @dias DAY);";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@dias", dias);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
     private static Reserva LeerReserva(MySqlDataReader lector)
     {
         return new Reserva

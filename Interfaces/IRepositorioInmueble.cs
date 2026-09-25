@@ -10,7 +10,7 @@ public interface IRepositorioInmueble
 
     int ModificarPortada(int id, string url);
 
-    IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5, int? idPropietario = null, bool? disponible = null);
+    IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5, int? idPropietario = null, bool? disponible = null, bool? estado = null);
 
     Inmueble? ObtenerPorId(int id);
 
@@ -18,4 +18,12 @@ public interface IRepositorioInmueble
     
     IList<Inmueble> ObtenerMasReservados();
     IList<Inmueble> ObtenerMenosReservados(int cantidad);
+
+    int Contar(int? idPropietario = null, bool? disponible = null, bool? estado = null);
+
+    int ContarMasReservados();
+
+    int ContarMenosReservados(int cantidad);
+
+    int ContarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin);
 }

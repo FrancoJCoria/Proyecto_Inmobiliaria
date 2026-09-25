@@ -1,0 +1,43 @@
+@using System
+@using System.Linq
+@using System.Net
+@{
+	int paginaActual = Math.Max(1, Convert.ToInt32(ViewBag.PaginaActual ?? 1));
+	int totalPaginas = Math.Max(1, Convert.ToInt32(ViewBag.TotalPaginas ?? 1));
+
+	var parametros = Context.Request.Query
+		.Where(k => !string.Equals(k.Key, "pagina", StringComparison.OrdinalIgnoreCase))
+		.Select(k => k.Key + "=" + WebUtility.UrlEncode(k.Value.ToString()));
+	string cadenaParametros = string.Join("&", parametros);
+
+	string UrlPagina(int pagina)
+	{
+		string separador = string.IsNullOrEmpty(cadenaParametros) ? "" : cadenaParametros + "&";
+		return "?" + separador + "pagina=" + pagina;
+	}
+}
+
+@if (totalPaginas > 1)
+{
+	<div class="d-flex justify-content-center align-items-center gap-2 mt-4">
+		@if (paginaActual > 1)
+		{
+			<a href="@UrlPagina(paginaActual - 1)" class="btn btn-outline-primary">&larr; Anterior</a>
+		}
+		else
+		{
+			<button class="btn btn-outline-secondary" disabled>&larr; Anterior</button>
+		}
+
+		<span class="badge bg-light text-dark border px-3 py-2 fs-6">Página @paginaActual de @totalPaginas</span>
+
+		@if (paginaActual < totalPaginas)
+		{
+			<a href="@UrlPagina(paginaActual + 1)" class="btn btn-primary">Siguiente &rarr;</a>
+		}
+		else
+		{
+			<button class="btn btn-secondary" disabled>Siguiente &rarr;</button>
+		}
+	</div>
+}

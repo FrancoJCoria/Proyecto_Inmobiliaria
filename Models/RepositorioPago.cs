@@ -128,6 +128,18 @@ public class RepositorioPago : RepositorioBase, IRepositorioPago
         return pago;
     }
 
+    public int ContarPorReserva(int idReserva)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = "SELECT COUNT(*) FROM Pago WHERE id_reserva = @id_reserva;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@id_reserva", idReserva);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
     private static Pago LeerPago(MySqlDataReader lector)
     {
         return new Pago

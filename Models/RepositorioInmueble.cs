@@ -66,7 +66,7 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return comando.ExecuteNonQuery();
     }
 
-    public IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5, int? idPropietario = null, bool? disponible = null)
+    public IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5, int? idPropietario = null, bool? disponible = null, bool? estado = null)
     {        
         
         var lista = new List<Inmueble>();
@@ -76,7 +76,12 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
 
         string consultaSql = @"SELECT id_inmueble, direccion, cupo, precio_dia, porcentaje_reserva,
         disponible, portada, id_propietario, id_tipo, estado
-        FROM Inmueble WHERE estado = 1";
+        FROM Inmueble WHERE 1 = 1";
+
+        if (estado.HasValue)
+        {
+            consultaSql += " AND estado = @estado";
+        }
 
         if(idPropietario.HasValue && idPropietario.Value > 0)
         {
@@ -93,6 +98,11 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@limit", tamanoPagina);
         comando.Parameters.AddWithValue("@offset", offset);
+
+        if (estado.HasValue)
+        {
+            comando.Parameters.AddWithValue("@estado", estado.Value);
+        }
 
         if (idPropietario.HasValue && idPropietario.Value > 0)
         {
@@ -253,10 +263,15 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
         i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado
         FROM Inmueble i
-        LEFT JOIN Reserva r ON i.id_inmueble = r.id_inmueble AND r.estado = 1 AND r.fecha_inicio >= DATE_SUB(CURDATE(), INTERVAL @cantidad DAY)
         WHERE i.estado = 1
-        GROUP BY i.id_inmueble
-        ORDER BY COUNT(r.id_reserva) ASC;";
+        AND NOT EXISTS (
+            SELECT 1 FROM Reserva r
+            WHERE r.id_inmueble = i.id_inmueble
+              AND r.estado = 1
+              AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= DATE_SUB(CURDATE(), INTERVAL @cantidad DAY)
+              AND r.fecha_inicio <= CURDATE()
+        )
+        ORDER BY i.id_inmueble ASC;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@cantidad", cantidad);
@@ -267,5 +282,103 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
             lista.Add(LeerInmueble(lector));
         }
         return lista;
+    }
+
+    public int Contar(int? idPropietario = null, bool? disponible = null, bool? estado = null)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = "SELECT COUNT(*) FROM Inmueble WHERE 1 = 1";
+
+        if (estado.HasValue)
+        {
+            consultaSql += " AND estado = @estado";
+        }
+
+        if (idPropietario.HasValue && idPropietario.Value > 0)
+        {
+            consultaSql += " AND id_propietario = @idPropietario";
+        }
+
+        if (disponible.HasValue)
+        {
+            consultaSql += " AND disponible = @disponible";
+        }
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+
+        if (estado.HasValue)
+        {
+            comando.Parameters.AddWithValue("@estado", estado.Value);
+        }
+
+        if (idPropietario.HasValue && idPropietario.Value > 0)
+        {
+            comando.Parameters.AddWithValue("@idPropietario", idPropietario.Value);
+        }
+
+        if (disponible.HasValue)
+        {
+            comando.Parameters.AddWithValue("@disponible", disponible.Value);
+        }
+
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
+    public int ContarMasReservados()
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT COUNT(DISTINCT i.id_inmueble)
+        FROM Inmueble i
+        JOIN Reserva r ON i.id_inmueble = r.id_inmueble
+        WHERE i.estado = 1 AND r.estado = 1 AND r.fecha_inicio >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR);";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
+    public int ContarMenosReservados(int cantidad)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT COUNT(*)
+        FROM Inmueble i
+        WHERE i.estado = 1
+        AND NOT EXISTS (
+            SELECT 1 FROM Reserva r
+            WHERE r.id_inmueble = i.id_inmueble
+              AND r.estado = 1
+              AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= DATE_SUB(CURDATE(), INTERVAL @cantidad DAY)
+              AND r.fecha_inicio <= CURDATE()
+        );";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@cantidad", cantidad);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
+    }
+
+    public int ContarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin)
+    {
+        using var conexion = new MySqlConnection(connectionString);
+
+        string consultaSql = @"SELECT COUNT(*)
+        FROM Inmueble i
+        WHERE i.estado = 1 AND i.disponible = 1
+        AND i.id_inmueble NOT IN (
+            SELECT r.id_inmueble
+            FROM Reserva r
+            WHERE r.estado = 1 
+            AND r.fecha_inicio <= @fechaFin 
+            AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= @fechaInicio);";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@fechaInicio", fechaInicio);
+        comando.Parameters.AddWithValue("@fechaFin", fechaFin);
+        conexion.Open();
+        return Convert.ToInt32(comando.ExecuteScalar());
     }
 }

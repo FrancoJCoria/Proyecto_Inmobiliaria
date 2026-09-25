@@ -7,4 +7,6 @@ public interface IRepositorioPago
     int Anular(Pago p);
     IList<Pago> ObtenerPorReserva(int idReserva);
     Pago? ObtenerPorId(int id);
+
+    int ContarPorReserva(int idReserva);
 }

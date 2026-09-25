@@ -14,4 +14,10 @@ public interface IRepositorioReserva
     IList<Reserva> ObtenerVigentes(DateTime desde, DateTime hasta);
 
     IList<Reserva> ObtenerPorTerminar(int dias);
+
+    int Contar();
+
+    int ContarVigentes(DateTime desde, DateTime hasta);
+
+    int ContarPorTerminar(int dias);
 }
