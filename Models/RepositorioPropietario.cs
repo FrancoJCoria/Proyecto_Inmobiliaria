@@ -120,7 +120,9 @@ public class RepositorioPropietario : RepositorioBase, IRepositorioPropietario
     }
 
 //------------------------------------------------------------LISTAR TODOS LOS PROPIETARIOS (PAGINADO)-----------------------------------------------------------------
-    public IList<Propietario> ObtenerTodos(int pagina = 1, int tamanoPagina = 5)
+    // Sin defaults a propósito: si los tuviera, ObtenerTodos() sin argumentos sería
+    // ambiguo entre esta versión y la lista completa de abajo.
+    public IList<Propietario> ObtenerTodos(int pagina, int tamanoPagina)
     {
         try{
             var lista = new List<Propietario>();//conetenedor chill
@@ -162,6 +164,28 @@ public class RepositorioPropietario : RepositorioBase, IRepositorioPropietario
                 throw;
             }
     }
+    //------------------------------------------------------------CONTAR PROPIETARIOS (TOTAL REAL PARA LA PAGINACION)-----------------------------------------------------------------
+    // Tiene que usar exactamente el mismo WHERE que el listado paginado de arriba, asi
+    // el numero del titulo coincide con la suma de filas de todas las paginas.
+    public int Contar()
+    {
+        try
+        {
+            using var conexion = new MySqlConnection(connectionString);
+
+            string consultaSql = "SELECT COUNT(*) FROM Propietario WHERE estado = 1;";
+
+            using var comando = new MySqlCommand(consultaSql, conexion);
+            conexion.Open();
+            return Convert.ToInt32(comando.ExecuteScalar());
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Fallo en Contar Propietario Models: {e.Message}");
+            throw;
+        }
+    }
+
     //------------------------------------------------------------BUSCAR PROPIETARIO POR ID-----------------------------------------------------------------
     public Propietario? ObtenerPorId(int id)
     {
@@ -203,19 +227,35 @@ public class RepositorioPropietario : RepositorioBase, IRepositorioPropietario
     }
 
     //------------------------------------------------------------LISTAR TODOS (SIN PAGINAR - PARA SELECTS)-----------------------------------------------------------------
-    public IList<Propietario> ObtenerTodos()
+    // Lista completa para los desplegables, con filtro opcional en el servidor. Con "busqueda"
+    // filtra por apellido, nombre o dni, que es lo que se escribe en el buscador del desplegable.
+    public IList<Propietario> ObtenerTodos(string? busqueda = null)
     {
         try
         {
             var lista = new List<Propietario>();
             using var conexion = new MySqlConnection(connectionString);
-            
+
+            // Solo se ofrecen los propietarios activos en los desplegables: no tiene sentido
+            // asignarle un inmueble a uno que está dado de baja.
             string consultaSql = @"SELECT id_propietario, nombre, apellido, dni, telefono, email, estado 
             FROM Propietario 
-            WHERE estado = 1 
-            ORDER BY apellido, nombre ASC;";
+            WHERE estado = 1";
+
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                consultaSql += " AND (nombre LIKE @busqueda OR apellido LIKE @busqueda OR dni LIKE @busqueda)";
+            }
+
+            consultaSql += " ORDER BY apellido, nombre ASC;";
 
             using var comando = new MySqlCommand(consultaSql, conexion);
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                // El % va en el valor del parámetro, nunca en el texto de la consulta.
+                comando.Parameters.AddWithValue("@busqueda", $"%{busqueda.Trim()}%");
+            }
+
             conexion.Open();
             using var leerLista = comando.ExecuteReader();
 

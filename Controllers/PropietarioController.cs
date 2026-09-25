@@ -15,20 +15,38 @@ public class PropietarioController : Controller
 
     public IActionResult Index(int pagina = 1)
     {
-        if (pagina < 1) pagina = 1;
-        int tamanoPagina = 5;
+        const int tamanoPagina = 5;
 
-        // obtiene registros para la paginacion, en este caso siempre esta limitado a 5 por pagina
+        // Primero se pregunta cuantos hay en total, para saber cuantas paginas existen.
+        int total = _repositorio.Contar();
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+
+        // Si piden una pagina que no existe (por ejemplo ?pagina=999) se recorta a la ultima.
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
         var propietarios = _repositorio.ObtenerTodos(pagina, tamanoPagina);
 
-        //solo envia la pagina actual, necesario para el boton de atras y siguiente
+        // El total que va en el titulo es el real, no la cantidad de filas de esta pagina.
+        ViewData["Cantidad"] = total;
         ViewBag.PaginaActual = pagina;
-
-        //los elementos que regresa por tanda
-        ViewData["Cantidad"] = propietarios.Count();
+        ViewBag.TotalPaginas = totalPaginas;
 
         return View(propietarios);
     }
+    // Devuelve solo el id y la etiqueta porque es lo único que el <select> necesita.
+    // El filtro se hace en el servidor: traer todos los propietarios y filtrar en el
+    // cliente mostraría una lista incompleta sin chances de encontrar lo que se busca.
+    [HttpGet]
+    public IActionResult BuscarPropietarios(string? termino)
+    {
+        var lista = _repositorio.ObtenerTodos(termino);
+        return Json(lista.Select(p => new
+        {
+            id = p.Id_propietario,
+            etiqueta = $"{p.Apellido}, {p.Nombre} ({p.Dni})"
+        }));
+    }
+
     [HttpGet]
     public IActionResult Details(int id)
     {

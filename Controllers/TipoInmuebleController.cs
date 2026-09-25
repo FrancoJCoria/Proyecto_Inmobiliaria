@@ -21,6 +21,18 @@ public class TipoInmuebleController : Controller
         return View(tipos);
     }
 
+    // Devuelve solo el id y la etiqueta porque es lo único que el <select> necesita.
+    [HttpGet]
+    public IActionResult BuscarTipos(string? termino)
+    {
+        var tipos = _repositorio.ObtenerTodos(termino);
+        return Json(tipos.Select(t => new
+        {
+            id = t.Id_tipo,
+            etiqueta = t.Nombre
+        }));
+    }
+
     [HttpGet]
     public IActionResult Create()
     {
