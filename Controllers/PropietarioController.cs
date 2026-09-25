@@ -39,7 +39,12 @@ public class PropietarioController : Controller
     [HttpGet]
     public IActionResult BuscarPropietarios(string? termino)
     {
-        var lista = _repositorio.ObtenerTodos(termino);
+        if (!BusquedaDesplegable.EsTerminoUtil(termino))
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var lista = _repositorio.ObtenerTodos(termino!.Trim(), BusquedaDesplegable.MaximoOpciones);
         return Json(lista.Select(p => new
         {
             id = p.Id_propietario,
