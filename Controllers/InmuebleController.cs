@@ -22,12 +22,16 @@ public class InmuebleController : Controller
     public IActionResult Index(int pagina = 1, int? idPropietario = null, bool? disponible = null, bool? estado = null)
     {
         const int tamanoPagina = 5;
+
+        // Total real de inmuebles según los filtros, para calcular cuántas páginas hay.
         int total = _repositorio.Contar(idPropietario, disponible, estado);
         int totalPaginas = (int)Math.Ceiling(total / (double)tamanoPagina);
         if (totalPaginas < 1)
         {
             totalPaginas = 1;
         }
+
+        // Se ajusta la página solicitada para que nunca esté fuera del rango válido.
         if (pagina < 1)
         {
             pagina = 1;
@@ -37,6 +41,7 @@ public class InmuebleController : Controller
             pagina = totalPaginas;
         }
 
+        // Se trae SOLO la página actual (LIMIT/OFFSET en el servidor), no todo el listado.
         var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina, idPropietario, disponible, estado);
         ViewData["Cantidad"] = total;
         ViewBag.PaginaActual = pagina;

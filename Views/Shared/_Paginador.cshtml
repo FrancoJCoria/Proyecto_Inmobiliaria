@@ -2,14 +2,19 @@
 @using System.Linq
 @using System.Net
 @{
+	// Página actual y total de páginas que define el controller (ViewBag.TotalPaginas).
+	// El 1 como mínimo evita mostrar un paginador inválido cuando no hay resultados.
 	int paginaActual = Math.Max(1, Convert.ToInt32(ViewBag.PaginaActual ?? 1));
 	int totalPaginas = Math.Max(1, Convert.ToInt32(ViewBag.TotalPaginas ?? 1));
 
+	// Se toman todos los query params de la URL actual menos "pagina", para que al
+	// navegar entre páginas se conserven los filtros y búsquedas activos en el servidor.
 	var parametros = Context.Request.Query
 		.Where(k => !string.Equals(k.Key, "pagina", StringComparison.OrdinalIgnoreCase))
 		.Select(k => k.Key + "=" + WebUtility.UrlEncode(k.Value.ToString()));
 	string cadenaParametros = string.Join("&", parametros);
 
+	// Arma el href de una página: "?filtros...&pagina=N".
 	string UrlPagina(int pagina)
 	{
 		string separador = string.IsNullOrEmpty(cadenaParametros) ? "" : cadenaParametros + "&";
@@ -17,6 +22,7 @@
 	}
 }
 
+@* Solo se muestra si hay más de una página. *@
 @if (totalPaginas > 1)
 {
 	<div class="d-flex justify-content-center align-items-center gap-2 mt-4">

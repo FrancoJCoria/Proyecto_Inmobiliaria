@@ -224,6 +224,7 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
         return lista;
     }
 
+    // Cuenta todas las reservas del sistema (para la paginación del listado general).
     public int Contar()
     {
         using var conexion = new MySqlConnection(connectionString);
@@ -235,6 +236,7 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
         return Convert.ToInt32(comando.ExecuteScalar());
     }
 
+    // Cuenta las reservas activas y no finalizadas que se superponen con el rango de fechas (informe "vigentes").
     public int ContarVigentes(DateTime desde, DateTime hasta)
     {
         using var conexion = new MySqlConnection(connectionString);
@@ -253,6 +255,7 @@ public class RepositorioReserva : RepositorioBase, IRepositorioReserva
         return Convert.ToInt32(comando.ExecuteScalar());
     }
 
+    // Cuenta las reservas activas cuya fecha de fin cae dentro del plazo indicado (informe "por terminar").
     public int ContarPorTerminar(int dias)
     {
         using var conexion = new MySqlConnection(connectionString);

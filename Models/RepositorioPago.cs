@@ -128,6 +128,7 @@ public class RepositorioPago : RepositorioBase, IRepositorioPago
         return pago;
     }
 
+    // Cuenta los pagos de una reserva puntual (para la paginación del listado de pagos).
     public int ContarPorReserva(int idReserva)
     {
         using var conexion = new MySqlConnection(connectionString);

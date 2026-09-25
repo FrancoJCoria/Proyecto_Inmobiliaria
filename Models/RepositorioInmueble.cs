@@ -284,6 +284,8 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return lista;
     }
 
+    // Cuenta los inmuebles según los filtros (misma lógica de WHERE que ObtenerTodos).
+    // Se usa para saber el total real y así armar la paginación en el servidor.
     public int Contar(int? idPropietario = null, bool? disponible = null, bool? estado = null)
     {
         using var conexion = new MySqlConnection(connectionString);
@@ -326,6 +328,7 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return Convert.ToInt32(comando.ExecuteScalar());
     }
 
+    // Cuenta los inmuebles con al menos una reserva activa en los últimos 365 días (informe "más reservados").
     public int ContarMasReservados()
     {
         using var conexion = new MySqlConnection(connectionString);
@@ -340,6 +343,7 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return Convert.ToInt32(comando.ExecuteScalar());
     }
 
+    // Cuenta los inmuebles que NO tuvieron ninguna reserva vigente en los últimos "cantidad" días (informe "sin reservas").
     public int ContarMenosReservados(int cantidad)
     {
         using var conexion = new MySqlConnection(connectionString);
@@ -361,6 +365,7 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return Convert.ToInt32(comando.ExecuteScalar());
     }
 
+    // Cuenta los inmuebles disponibles y sin reservas activas que se superpongan con el rango de fechas (informe "libres por fecha").
     public int ContarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin)
     {
         using var conexion = new MySqlConnection(connectionString);
