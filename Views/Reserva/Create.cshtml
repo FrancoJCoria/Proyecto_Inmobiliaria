@@ -29,7 +29,9 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_inmueble" class="form-label">Inmueble</label>
-				<select asp-for="Id_inmueble" class="form-select">
+				<input type="text" id="busquedaInmueble" class="form-control mb-2"
+					placeholder="Escribí para filtrar por dirección..." autocomplete="off" />
+				<select asp-for="Id_inmueble" class="form-select" size="5">
 					<option value="0">-- Elegir inmueble --</option>
 				</select>
 				<div class="form-text">Escribí al menos 3 caracteres de la dirección para buscar.</div>

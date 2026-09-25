@@ -19,7 +19,9 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_tipo" class="form-label">Tipo de inmueble</label>
-				<select asp-for="Id_tipo" class="form-select">
+				<input type="text" id="busquedaTipo" class="form-control mb-2"
+					placeholder="Escribí para filtrar por tipo..." autocomplete="off" />
+				<select asp-for="Id_tipo" class="form-select" size="5">
 					<option value="0">-- Elegir tipo --</option>
 				</select>
 				<div class="form-text">Escribí al menos 3 caracteres para buscar.</div>
@@ -27,7 +29,9 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_propietario" class="form-label">Propietario</label>
-				<select asp-for="Id_propietario" class="form-select">
+				<input type="text" id="busquedaPropietario" class="form-control mb-2"
+					placeholder="Escribí para filtrar por apellido, nombre o DNI..." autocomplete="off" />
+				<select asp-for="Id_propietario" class="form-select" size="5">
 					<option value="0">-- Elegir propietario --</option>
 				</select>
 				<div class="form-text">Se busca por apellido, nombre o DNI.</div>
