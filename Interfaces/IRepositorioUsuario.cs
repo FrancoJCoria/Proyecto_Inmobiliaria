@@ -9,6 +9,11 @@ public interface IRepositorioUsuario
     Usuario? ObtenerPorId(int id);
     Usuario? ObetenerPorEmail(string email);
 
-    IList<Usuario> ObtenerTodos(int pagina = 1, int tamanoPagina = 5);
+    // Lista completa, sin paginar, para resolver nombres de usuario. Con "busqueda"
+    // filtra en el servidor por nombre, apellido o email. La versión paginada NO lleva
+    // defaults, así "ObtenerTodos()" sin argumentos cae inequívocamente en esta.
+    IList<Usuario> ObtenerTodos(string? busqueda = null);
+    IList<Usuario> ObtenerTodos(int pagina, int tamanoPagina);
+    int Contar();
 
 }
