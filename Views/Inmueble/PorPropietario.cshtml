@@ -3,42 +3,29 @@
 @{
 	ViewData["Title"] = "Inmuebles por propietario";
 	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
-	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
-	string busqueda = (string)(ViewBag.BusquedaPropietario ?? "");
-	int? seleccionado = ViewBag.PropietarioSeleccionado as int?;
-	var nombrePropietario = propietarios?.FirstOrDefault(p => p.Id_propietario == seleccionado);
+	// El desplegable no trae el catalogo: las opciones llegan por AJAX cuando el usuario
+	// escribe. Lo unico que se trae por id es la etiqueta del propietario que venia
+	// elegido en la url, para que el filtro muestre la seleccion vigente.
+	var propietarioSeleccionado = ViewBag.PropietarioSeleccionado as Inmobiliaria.Models.OpcionDesplegable;
 }
 
-<h1>Inmuebles de @(nombrePropietario != null ? nombrePropietario.Apellido + ", " + nombrePropietario.Nombre : "todos los propietarios") (@cantidad)</h1>
+<h1>Inmuebles de @(propietarioSeleccionado != null ? propietarioSeleccionado.Etiqueta : "todos los propietarios") (@cantidad)</h1>
 
-@* El buscador y el desplegable se envían por GET: el texto acota la lista de propietarios
-   que se ofrecen y el propietario elegido es el filtro del informe. *@
+@* El desplegable se envía por GET: el propietario elegido es el filtro del informe. El
+   buscador de opciones vive adentro del desplegable y pega contra el servidor, asi que no
+   hace falta un campo de texto aparte en el formulario. *@
 <form asp-action="PorPropietario" method="get" class="card card-body bg-light mb-3">
 	<div class="row g-3 align-items-end">
 		<div class="col-md-4">
-			<label for="busquedaPropietario" class="form-label fw-bold">Buscar propietario:</label>
-			<input type="text" id="busquedaPropietario" name="busquedaPropietario" class="form-control"
-				value="@busqueda" placeholder="Apellido, nombre o DNI..." autocomplete="off" />
-		</div>
-		<div class="col-md-4">
 			<label for="filtroPropietario" class="form-label fw-bold">Propietario:</label>
-			<select name="idPropietario" id="filtroPropietario" class="form-select" size="5">
+			<select name="idPropietario" id="filtroPropietario" class="form-select">
 				<option value="">-- Todos los propietarios --</option>
-				@if (propietarios != null)
+				@if (propietarioSeleccionado != null)
 				{
-					foreach (var p in propietarios)
-					{
-						if (seleccionado == p.Id_propietario)
-						{
-							<option value="@p.Id_propietario" selected>@(p.Apellido + ", " + p.Nombre)</option>
-						}
-						else
-						{
-							<option value="@p.Id_propietario">@(p.Apellido + ", " + p.Nombre)</option>
-						}
-					}
+					<option value="@propietarioSeleccionado.Id" selected>@propietarioSeleccionado.Etiqueta</option>
 				}
 			</select>
+			<div class="form-text">Escribí al menos 3 caracteres para buscar por apellido, nombre o DNI.</div>
 		</div>
 		<div class="col-md-4 d-flex gap-2">
 			<button type="submit" class="btn btn-primary w-100">Filtrar</button>
@@ -64,7 +51,7 @@
 @section Scripts {
 	<partial name="_ScriptDesplegable" />
 	<script>
-		activarBusquedaDesplegable('#busquedaPropietario', '#filtroPropietario',
+		activarDesplegable('#filtroPropietario',
 			'@Url.Action("BuscarPropietarios", "Propietario")', '-- Todos los propietarios --', '');
 	</script>
 }

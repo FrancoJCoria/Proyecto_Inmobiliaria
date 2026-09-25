@@ -10,11 +10,12 @@ public interface IRepositorioInmueble
 
     int ModificarPortada(int id, string url);
 
-    // Lista completa, sin paginar, para los desplegables. Con "busqueda" filtra en el
-    // servidor por dirección. La versión paginada NO lleva defaults, así
-    // "ObtenerTodos()" sin argumentos cae inequívocamente en esta.
-    IList<Inmueble> ObtenerTodos(string? busqueda = null);
+    // Filtro en el servidor para los desplegables: trae los inmuebles cuya direccion
+    // coincide con "busqueda" y como mucho "limite" filas. La versión paginada NO lleva
+    // defaults, así "ObtenerTodos()" sin argumentos cae inequívocamente en esta.
+    IList<Inmueble> ObtenerTodos(string? busqueda = null, int limite = 20);
 
+    // Listado paginado de la pagina de Inmuebles, con los filtros de listado.
     IList<Inmueble> ObtenerTodos(int pagina, int tamanoPagina, int? idPropietario = null, bool? disponible = null, bool? estado = null);
 
     Inmueble? ObtenerPorId(int id);

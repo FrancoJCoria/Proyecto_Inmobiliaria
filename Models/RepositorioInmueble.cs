@@ -134,10 +134,10 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return lista;
     }
 
-    // Lista completa para los desplegables, con filtro opcional en el servidor. Antes esta
-    // llamada caía en la versión paginada con sus defaults y por eso el desplegable de
-    // reservas solo mostraba los primeros 5 inmuebles.
-    public IList<Inmueble> ObtenerTodos(string? busqueda = null)
+    // Devuelve solo los inmuebles que coinciden con el termino escrito en el buscador del
+    // desplegable, y como mucho "limite" filas. Antes esta llamada devolvia la tabla
+    // entera, por eso el desplegable de reservas cargaba todos los inmuebles en cada request.
+    public IList<Inmueble> ObtenerTodos(string? busqueda = null, int limite = 20)
     {
         var lista = new List<Inmueble>();
         using var conexion = new MySqlConnection(connectionString);
@@ -158,7 +158,7 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
             consultaSql += " AND i.direccion LIKE @busqueda";
         }
 
-        consultaSql += " ORDER BY i.direccion ASC;";
+        consultaSql += " ORDER BY i.direccion ASC LIMIT @limite;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         if (!string.IsNullOrWhiteSpace(busqueda))
@@ -166,6 +166,9 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
             // El % va en el valor del parámetro, nunca en el texto de la consulta.
             comando.Parameters.AddWithValue("@busqueda", $"%{busqueda.Trim()}%");
         }
+        // Acota la cantidad de filas que vuelven de la base, que es lo que evita que
+        // un termino corto se trajeera el catalogo entero.
+        comando.Parameters.AddWithValue("@limite", limite);
 
         conexion.Open();
         using var lector = comando.ExecuteReader();

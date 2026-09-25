@@ -1,35 +1,51 @@
-@* Define la función que agrega búsqueda en servidor a un <select>.
-   Cada vista la incluye y después la llama con sus propios datos, por ejemplo:
-     activarBusquedaDesplegable('#busquedaPropietario', '#Id_propietario',
-         '/Propietario/BuscarPropietarios', '-- Elegir propietario --');
+@* Convierte un <select> de catálogo en un desplegable con búsqueda en servidor (Select2).
+   Cada vista lo incluye y después lo activa con sus propios datos, por ejemplo:
+     activarDesplegable('#Id_propietario', '/Propietario/BuscarPropietarios',
+         '-- Elegir propietario --', 0);
+     activarDesplegable('#filtroPropietario', '/Propietario/BuscarPropietarios',
+         '-- Todos los propietarios --', '');
 
-   Se busca por AJAX y no con un formulario GET a propósito: al filtrar un desplegable
-   no se pierden las fechas ni los montos que ya están cargados en el formulario. *@
+   El <select> llega a la vista con unicamente la opcion "-- Elegir --" y, si corresponde,
+   la opcion que ya estaba elegida. Nunca se escribe ahi el catalogo completo: las opciones
+   llegan por AJAX desde el servidor, que es quien filtra con el termino escrito.
+
+   Se busca por AJAX y no con un formulario GET a proposito: al filtrar un desplegable
+   no se pierden las fechas ni los montos que ya estan cargados en el formulario. *@
 <script>
-	// "valorVacio" es el value de la opción de arranque. Por defecto es '0', que es lo que
-	// necesitan los desplegables de los formularios; los filtros de los listados usan ''
-	// porque "sin filtro" no es lo mismo que "el id 0".
-	function activarBusquedaDesplegable(inputBusqueda, select, url, textoVacio, valorVacio = '0') {
-		// El debounce evita una consulta por cada tecla: solo espera a que el usuario
-		// se quede un momento sin escribir.
-		let temporizador;
-		$(inputBusqueda).on('input', function () {
-			clearTimeout(temporizador);
-			temporizador = setTimeout(function () {
-				// Se guarda la selección actual porque, si el elemento sigue entre los
-				// resultados, no hay que obligar a elegirlo de nuevo.
-				let seleccionActual = $(select).val();
-				$.get(url, { termino: $(inputBusqueda).val() }, function (datos) {
-					$(select).empty();
-					$(select).append($('<option></option>').val(valorVacio).text(textoVacio));
-					datos.forEach(function (item) {
-						$(select).append($('<option></option>').val(item.id).text(item.etiqueta));
-					});
-					if (seleccionActual && $(select).find('option[value="' + seleccionActual + '"]').length > 0) {
-						$(select).val(seleccionActual);
-					}
-				});
-			}, 300);
+	// Un desplegable es un <select> real: Select2 escribe el id elegido en un input
+	// oculto con el mismo name, asi que el formulario sigue enviando el valor normal.
+	//   url           action que devuelve [{ id, etiqueta }] filtrado por ?termino=
+	//   textoVacio    etiqueta de la opcion "-- Elegir --"
+	//   valorVacio    value de esa opcion: '0' en formularios, '' en filtros de listado
+	function activarDesplegable(select, url, textoVacio, valorVacio) {
+		$(select).select2({
+			language: 'es',
+			placeholder: textoVacio,
+			// Caracteres minimos antes de consultar. Tiene que coincidir con
+			// BusquedaDesplegable.LongitudMinima: con menos caracteres el servidor
+			// responde una lista vacia, porque un prefijo tan corto ("a") coincide con
+			// casi todo y no acotaria nada.
+			minimumInputLength: 3,
+			maximumInputLength: 60,
+			width: '100%',
+			ajax: {
+				url: url,
+				type: 'GET',
+				dataType: 'json',
+				// Espera a que el usuario se detenga antes de consultar.
+				delay: 300,
+				cache: true,
+				data: function (params) {
+					return { termino: params.term || '' };
+				},
+				processResults: function (respuesta) {
+					return {
+						results: respuesta.map(function (item) {
+							return { id: item.id, text: item.etiqueta };
+						})
+					};
+				}
+			}
 		});
 	}
 </script>

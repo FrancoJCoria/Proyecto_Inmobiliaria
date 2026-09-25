@@ -46,7 +46,6 @@ public class PagoController : Controller
         ViewData["Cantidad"] = total;
         ViewBag.PaginaActual = pagina;
         ViewBag.TotalPaginas = totalPaginas;
-        CargarListas();
         return View(pagos);
     }
 
@@ -58,7 +57,7 @@ public class PagoController : Controller
         {
             return NotFound();
         }
-        CargarListas();
+        CargarUsuariosDeDetails(pago);
         return View(pago);
     }
 
@@ -75,7 +74,6 @@ public class PagoController : Controller
             }
         }
         ViewBag.Reserva = reserva;
-        CargarListas();
 return View(new Pago { Id_reserva = idReserva, Fecha_pago = DateTime.Now });
     }
 
@@ -95,7 +93,6 @@ return View(new Pago { Id_reserva = idReserva, Fecha_pago = DateTime.Now });
 
         if (!ModelState.IsValid)
         {
-            CargarListas();
             return View(pago);
         }
 
@@ -105,7 +102,6 @@ return View(new Pago { Id_reserva = idReserva, Fecha_pago = DateTime.Now });
         if (idGenerado == 0)
         {
             ModelState.AddModelError("", "No se pudo crear el pago.");
-            CargarListas();
             return View(pago);
         }
         return RedirectToAction("Index", new { idReserva = pago.Id_reserva });
@@ -119,7 +115,6 @@ return View(new Pago { Id_reserva = idReserva, Fecha_pago = DateTime.Now });
         {
             return NotFound();
         }
-        CargarListas();
         return View(pago);
     }
 
@@ -142,7 +137,6 @@ return View(new Pago { Id_reserva = idReserva, Fecha_pago = DateTime.Now });
         if (string.IsNullOrWhiteSpace(pago.Concepto))
         {
             ModelState.AddModelError("Concepto", "El concepto es obligatorio.");
-            CargarListas();
             return View(original);
         }
 
@@ -158,7 +152,6 @@ return View(new Pago { Id_reserva = idReserva, Fecha_pago = DateTime.Now });
         if (filasAfectadas == 0)
         {
             ModelState.AddModelError("", "No se pudo modificar el pago.");
-            CargarListas();
             return View(original);
         }
         return RedirectToAction("Index", new { idReserva = pago.Id_reserva });
@@ -173,7 +166,6 @@ return View(new Pago { Id_reserva = idReserva, Fecha_pago = DateTime.Now });
         {
             return NotFound();
         }
-        CargarListas();
         return View(pago);
     }
 
@@ -210,8 +202,22 @@ return View(new Pago { Id_reserva = idReserva, Fecha_pago = DateTime.Now });
         return int.TryParse(idClaim, out var id) ? id : null;
     }
 
-    private void CargarListas()
+    // En Details solo hacen falta los nombres de los dos usuarios que tocaron el pago, asi
+    // que se consultan por id en vez de bajar la tabla Usuario entera para usar dos filas.
+    private void CargarUsuariosDeDetails(Pago pago)
     {
-        ViewBag.Usuarios = _repositorioUsuario.ObtenerTodos();
+        ViewBag.UsuarioCreador = ObtenerNombreUsuario(pago.Id_usuario_creador);
+        ViewBag.UsuarioAnulador = ObtenerNombreUsuario(pago.Id_usuario_anulador);
+    }
+
+    private string? ObtenerNombreUsuario(int idUsuario)
+    {
+        if (idUsuario <= 0)
+        {
+            return null;
+        }
+
+        var usuario = _repositorioUsuario.ObtenerPorId(idUsuario);
+        return usuario == null ? null : $"{usuario.Apellido}, {usuario.Nombre}";
     }
 }

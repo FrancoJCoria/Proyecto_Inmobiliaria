@@ -14,9 +14,14 @@ public class TipoInmuebleController : Controller
         _repositorio = repositorio;
     }
 
+    // La página de tipos muestra la tabla completa, así que acá se pide un tope alto a
+    // propósito. Esto no es un desplegable: es el contenido de la página. Los tipos son
+    // una tabla chica de consulta, por eso el número puede ser generoso.
+    private const int TopoParaElListadoCompleto = 200;
+
     public IActionResult Index()
     {
-        var tipos = _repositorio.ObtenerTodos();
+        var tipos = _repositorio.ObtenerTodos(null, TopoParaElListadoCompleto);
         ViewData["Cantidad"] = tipos.Count();
         return View(tipos);
     }
@@ -25,7 +30,12 @@ public class TipoInmuebleController : Controller
     [HttpGet]
     public IActionResult BuscarTipos(string? termino)
     {
-        var tipos = _repositorio.ObtenerTodos(termino);
+        if (!BusquedaDesplegable.EsTerminoUtil(termino))
+        {
+            return Json(Array.Empty<object>());
+        }
+
+        var tipos = _repositorio.ObtenerTodos(termino!.Trim(), BusquedaDesplegable.MaximoOpciones);
         return Json(tipos.Select(t => new
         {
             id = t.Id_tipo,

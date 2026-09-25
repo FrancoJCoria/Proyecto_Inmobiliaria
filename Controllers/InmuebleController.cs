@@ -8,14 +8,14 @@ public class InmuebleController : Controller
 {
     private readonly IRepositorioInmueble _repositorio;
     private readonly IRepositorioPropietario _repositorioPropietario;
-    private readonly IRepositorioTipoInmueble _repositorioTipo;
     private readonly IRepositorioImagenInmueble _repositorioImagen;
 
-    public InmuebleController(IRepositorioInmueble repositorio, IRepositorioPropietario repositorioPropietario, IRepositorioTipoInmueble repositorioTipo, IRepositorioImagenInmueble repositorioImagen)
+    // No se inyecta IRepositorioTipoInmueble porque el nombre del tipo ya viene en el
+    // LEFT JOIN de ObtenerPorId: ningun desplegable de este controller lo necesita.
+    public InmuebleController(IRepositorioInmueble repositorio, IRepositorioPropietario repositorioPropietario, IRepositorioImagenInmueble repositorioImagen)
     {
         _repositorio = repositorio;
         _repositorioPropietario = repositorioPropietario;
-        _repositorioTipo = repositorioTipo;
         _repositorioImagen = repositorioImagen;
     }
 
@@ -46,10 +46,9 @@ public class InmuebleController : Controller
         ViewData["Cantidad"] = total;
         ViewBag.PaginaActual = pagina;
         ViewBag.TotalPaginas = totalPaginas;
-        ViewBag.FiltroPropietario = idPropietario;
         ViewBag.FiltroDisponible = disponible;
         ViewBag.FiltroEstado = estado;
-        CargarListas();
+        CargarPropietarioDelFiltro(idPropietario);
         return View(inmuebles);
     }
 
@@ -68,7 +67,7 @@ public class InmuebleController : Controller
     [HttpGet]
     public IActionResult Create()
     {
-        CargarListas();
+        CargarSeleccionado(null);
         return View();
     }
 
@@ -78,7 +77,7 @@ public class InmuebleController : Controller
     {
         if (!ModelState.IsValid)
         {
-            CargarListas();
+            CargarSeleccionado(inmueble);
             return View(inmueble);
         }
 
@@ -87,7 +86,7 @@ public class InmuebleController : Controller
         if (idGenerado == 0)
         {
             ModelState.AddModelError("", "No se pudo crear el inmueble.");
-            CargarListas();
+            CargarSeleccionado(inmueble);
             return View(inmueble);
         }
         return RedirectToAction("Index");
@@ -101,7 +100,7 @@ public class InmuebleController : Controller
         {
             return NotFound();
         }
-        CargarListas();
+        CargarSeleccionado(inmueble);
         return View(inmueble);
     }
 
@@ -111,7 +110,7 @@ public class InmuebleController : Controller
     {
         if (!ModelState.IsValid)
         {
-            CargarListas();
+            CargarSeleccionado(inmueble);
             return View(inmueble);
         }
 
@@ -120,7 +119,7 @@ public class InmuebleController : Controller
         if (filasAfectadas == 0)
         {
             ModelState.AddModelError("", "No se pudo modificar el inmueble.");
-            CargarListas();
+            CargarSeleccionado(inmueble);
             return View(inmueble);
         }
         return RedirectToAction("Index");
@@ -161,7 +160,6 @@ public class InmuebleController : Controller
             return NotFound();
         }
         inmueble.Imagenes = _repositorioImagen.BuscarPorInmueble(id);
-        CargarListas();
         return View(inmueble);
     }
 
@@ -222,10 +220,45 @@ public class InmuebleController : Controller
         }
     }
 
-    private void CargarListas()
+    // Los desplegables de propietario y tipo se resuelven por AJAX contra BuscarPropietarios
+    // y BuscarTipos: la vista nunca recibe el catálogo completo. Lo único que se trae por id
+    // es la etiqueta de lo que ya estaba elegido, para que Edit muestre el valor vigente y
+    // Create no muestre nada. Son consultas por clave primaria, no listados.
+    private void CargarSeleccionado(Inmueble? inmueble)
     {
-        ViewBag.Propietarios = _repositorioPropietario.ObtenerTodos();
-        ViewBag.Tipos = _repositorioTipo.ObtenerTodos();
+        ViewBag.PropietarioSeleccionado = null;
+        ViewBag.TipoSeleccionado = null;
+
+        if (inmueble == null)
+        {
+            return;
+        }
+
+        // El nombre del tipo ya viene en el LEFT JOIN de ObtenerPorId, asi que no hace
+        // falta consultar TipoInmueble.
+        if (inmueble.Id_tipo > 0 && !string.IsNullOrEmpty(inmueble.NombreTipo))
+        {
+            ViewBag.TipoSeleccionado = new OpcionDesplegable
+            {
+                Id = inmueble.Id_tipo,
+                Etiqueta = inmueble.NombreTipo
+            };
+        }
+
+        // Del propietario si hace falta el DNI para armar la misma etiqueta que arma
+        // BuscarPropietarios, asi que se resuelve con una consulta por id.
+        if (inmueble.Id_propietario > 0)
+        {
+            var propietario = _repositorioPropietario.ObtenerPorId(inmueble.Id_propietario);
+            if (propietario != null)
+            {
+                ViewBag.PropietarioSeleccionado = new OpcionDesplegable
+                {
+                    Id = propietario.Id_propietario,
+                    Etiqueta = $"{propietario.Apellido}, {propietario.Nombre} ({propietario.Dni})"
+                };
+            }
+        }
     }
 
     public IActionResult Informes()
@@ -233,16 +266,36 @@ public class InmuebleController : Controller
         return View();
     }
 
+    // El desplegable de propietario del filtro y del informe se resuelve por AJAX contra
+    // BuscarPropietarios. Acá solo se trae la etiqueta del propietario que ya venia
+    // elegido en la url, para que el filtro muestre la seleccion vigente.
+    private void CargarPropietarioDelFiltro(int? idPropietario)
+    {
+        ViewBag.PropietarioSeleccionado = null;
+
+        // Un id 0 o negativo viene del placeholder "-- Todos --" y no es un filtro real.
+        if (!idPropietario.HasValue || idPropietario.Value <= 0)
+        {
+            return;
+        }
+
+        var propietario = _repositorioPropietario.ObtenerPorId(idPropietario.Value);
+        if (propietario != null)
+        {
+            ViewBag.PropietarioSeleccionado = new OpcionDesplegable
+            {
+                Id = propietario.Id_propietario,
+                Etiqueta = $"{propietario.Apellido}, {propietario.Nombre}"
+            };
+        }
+    }
+
     // Informe: inmuebles que le corresponden a un propietario específico.
     // El propietario se elige de un desplegable con búsqueda en el servidor, no de una
     // lista con todos los propietarios cargados.
-    public IActionResult PorPropietario(int? idPropietario, string? busquedaPropietario, int pagina = 1)
+    public IActionResult PorPropietario(int? idPropietario, int pagina = 1)
     {
         const int tamanoPagina = 5;
-
-        // El buscador del desplegable se resuelve en el servidor.
-        ViewBag.Propietarios = _repositorioPropietario.ObtenerTodos(busquedaPropietario);
-        ViewBag.BusquedaPropietario = busquedaPropietario;
 
         // Un id 0 o negativo viene del placeholder "-- Todos --" y no es un filtro real.
         if (idPropietario.HasValue && idPropietario.Value <= 0)
@@ -250,13 +303,14 @@ public class InmuebleController : Controller
             idPropietario = null;
         }
 
+        CargarPropietarioDelFiltro(idPropietario);
+
         int total = _repositorio.Contar(idPropietario);
         int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
         pagina = Math.Clamp(pagina, 1, totalPaginas);
 
         var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina, idPropietario);
         ViewData["Cantidad"] = total;
-        ViewBag.PropietarioSeleccionado = idPropietario;
         ViewBag.PaginaActual = pagina;
         ViewBag.TotalPaginas = totalPaginas;
         return View(inmuebles);

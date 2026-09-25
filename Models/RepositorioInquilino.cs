@@ -95,11 +95,11 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
         }
     }
 
-//----------------------------------------------------------------LISTAR TODOS LOS INQUILINOS (SIN PAGINAR - PARA SELECTS)-------------------------------------------
-    // Lista completa para los desplegables, con filtro opcional en el servidor. Antes esta
-    // llamada caía en la versión paginada con sus defaults y por eso el desplegable de
-    // reservas solo mostraba los primeros 5 inquilinos.
-    public IList<Inquilino> ObtenerTodos(string? busqueda = null)
+//----------------------------------------------------------------FILTRAR PARA LOS DESPLEGABLES-------------------------------------------
+    // Devuelve solo los inquilinos que coinciden con el termino escrito en el buscador del
+    // desplegable, y como mucho "limite" filas. Antes esta llamada devolvia la tabla entera,
+    // por eso el desplegable de reservas cargaba todos los inquilinos en cada request.
+    public IList<Inquilino> ObtenerTodos(string? busqueda = null, int limite = 20)
     {
         try
         {
@@ -117,7 +117,7 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
                 consultaSql += " AND (nombre LIKE @busqueda OR apellido LIKE @busqueda OR dni LIKE @busqueda)";
             }
 
-            consultaSql += " ORDER BY apellido, nombre ASC;";
+            consultaSql += " ORDER BY apellido, nombre ASC LIMIT @limite;";
 
             using var command = new MySqlCommand(consultaSql, connection);
             if (!string.IsNullOrWhiteSpace(busqueda))
@@ -125,6 +125,9 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
                 // El % va en el valor del parámetro, nunca en el texto de la consulta.
                 command.Parameters.AddWithValue("@busqueda", $"%{busqueda.Trim()}%");
             }
+            // Acota la cantidad de filas que vuelven de la base, que es lo que evita que
+            // un termino corto se trajeera el catalogo entero.
+            command.Parameters.AddWithValue("@limite", limite);
 
             connection.Open();
             using var reader = command.ExecuteReader();
@@ -145,7 +148,7 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Fallo en ObtenerTodos sin paginar Inquilino: {e.Message}");
+            Console.WriteLine($"Fallo al filtrar inquilinos para el desplegable: {e.Message}");
             throw;
         }
     }

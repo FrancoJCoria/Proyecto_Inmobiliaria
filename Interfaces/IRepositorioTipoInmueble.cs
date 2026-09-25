@@ -8,8 +8,9 @@ public interface IRepositorioTipoInmueble
 
     int Modificacion(TipoInmueble t);
 
-    // Lista completa para los desplegables, con filtro opcional en el servidor por nombre.
-    IList<TipoInmueble> ObtenerTodos(string? busqueda = null);
+    // Filtro en el servidor para el desplegable de tipos: trae los que coinciden con
+    // "busqueda" por nombre y como mucho "limite" filas.
+    IList<TipoInmueble> ObtenerTodos(string? busqueda = null, int limite = 20);
 
     TipoInmueble? ObtenerPorId(int id);
 }
