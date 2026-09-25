@@ -2,8 +2,8 @@
 
 @{
 	ViewData["Title"] = "Crear Inmueble";
-	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
-	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
+	// Ningun desplegable trae el catalogo: las opciones llegan por AJAX cuando el usuario
+	// escribe. En Create no hay nada elegido todavia, asi que no hay nada que preseleccionar.
 }
 
 <h1>Crear Inmueble</h1>
@@ -19,37 +19,20 @@
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_tipo" class="form-label">Tipo de inmueble</label>
-				<input type="text" id="busquedaTipo" class="form-control mb-2"
-					placeholder="Escribí para filtrar por tipo..." autocomplete="off" />
-				<select asp-for="Id_tipo" class="form-select" size="5">
+				<select asp-for="Id_tipo" class="form-select">
 					<option value="0">-- Elegir tipo --</option>
-					@if (tipos != null)
-					{
-						@foreach (var t in tipos)
-						{
-							<option value="@t.Id_tipo">@t.Nombre</option>
-						}
-					}
 				</select>
+				<div class="form-text">Escribí al menos 3 caracteres para buscar.</div>
 				<span asp-validation-for="Id_tipo" class="text-danger"></span>
 			</div>
 			<div class="mb-3">
 				<label asp-for="Id_propietario" class="form-label">Propietario</label>
-				<input type="text" id="busquedaPropietario" class="form-control mb-2"
-					placeholder="Escribí para filtrar por apellido, nombre o DNI..." autocomplete="off" />
-				<select asp-for="Id_propietario" class="form-select" size="5">
+				<select asp-for="Id_propietario" class="form-select">
 					<option value="0">-- Elegir propietario --</option>
-					@if (propietarios != null)
-					{
-						@foreach (var p in propietarios)
-						{
-							<option value="@p.Id_propietario">@p.Apellido, @p.Nombre (@p.Dni)</option>
-						}
-					}
 				</select>
+				<div class="form-text">Se busca por apellido, nombre o DNI.</div>
 				<span asp-validation-for="Id_propietario" class="text-danger"></span>
-			</div>
-			<div class="mb-3">
+			</div>			<div class="mb-3">
 				<label asp-for="Cupo" class="form-label">Cupo de personas</label>
 				<input asp-for="Cupo" type="number" class="form-control" />
 				<span asp-validation-for="Cupo" class="text-danger"></span>
@@ -83,7 +66,7 @@
 	<partial name="_ValidationScriptsPartial" />
 	<partial name="_ScriptDesplegable" />
 	<script>
-		activarBusquedaDesplegable('#busquedaTipo', '#Id_tipo', '@Url.Action("BuscarTipos", "TipoInmueble")', '-- Elegir tipo --');
-		activarBusquedaDesplegable('#busquedaPropietario', '#Id_propietario', '@Url.Action("BuscarPropietarios", "Propietario")', '-- Elegir propietario --');
+		activarDesplegable('#Id_tipo', '@Url.Action("BuscarTipos", "TipoInmueble")', '-- Elegir tipo --', 0);
+		activarDesplegable('#Id_propietario', '@Url.Action("BuscarPropietarios", "Propietario")', '-- Elegir propietario --', 0);
 	</script>
 }

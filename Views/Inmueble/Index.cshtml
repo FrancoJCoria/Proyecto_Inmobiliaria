@@ -3,9 +3,11 @@
 @{
 	ViewData["Title"] = "Inmuebles";
 	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
-	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
-	int? filtroProp = ViewBag.FiltroPropietario as int?;
-    bool? filtroDisp = ViewBag.FiltroDisponible as bool?;
+	// El desplegable de propietario no trae el catalogo: las opciones llegan por AJAX
+	// cuando el usuario escribe. Lo unico que se trae por id es la etiqueta del propietario
+	// que venia elegido en la url, para que el filtro muestre la seleccion vigente.
+	var propietarioSeleccionado = ViewBag.PropietarioSeleccionado as Inmobiliaria.Models.OpcionDesplegable;
+	bool? filtroDisp = ViewBag.FiltroDisponible as bool?;
     bool? filtroEst = ViewBag.FiltroEstado as bool?;
 }
 
@@ -20,25 +22,14 @@
     <div class="row g-3 align-items-end">
         <div class="col-md-4">
             <label class="form-label fw-bold">Propietario:</label>
-            <input type="text" id="busquedaFiltroPropietario" class="form-control mb-2"
-                placeholder="Escribí para filtrar por apellido, nombre o DNI..." autocomplete="off" />
-            <select name="idPropietario" id="filtroPropietario" class="form-select" size="5">
+            <select name="idPropietario" id="filtroPropietario" class="form-select">
                 <option value="">-- Todos los propietarios --</option>
-                @if (propietarios != null)
+                @if (propietarioSeleccionado != null)
                 {
-                    foreach (var p in propietarios)
-                    {
-                        if (filtroProp == p.Id_propietario)
-                        {
-                            <option value="@p.Id_propietario" selected>@(p.Apellido + ", " + p.Nombre)</option>
-                        }
-                        else
-                        {
-                            <option value="@p.Id_propietario">@(p.Apellido + ", " + p.Nombre)</option>
-                        }
-                    }
+                    <option value="@propietarioSeleccionado.Id" selected>@propietarioSeleccionado.Etiqueta</option>
                 }
             </select>
+            <div class="form-text">Escribí al menos 3 caracteres para buscar por apellido, nombre o DNI.</div>
         </div>
 
         <div class="col-md-3">
@@ -106,7 +97,7 @@
 	<script>
 		// El valor vacío de la opción "Todos" se pasa explícitamente porque en este filtro
 		// "sin selección" no es lo mismo que el id 0.
-		activarBusquedaDesplegable('#busquedaFiltroPropietario', '#filtroPropietario',
+		activarDesplegable('#filtroPropietario',
 			'@Url.Action("BuscarPropietarios", "Propietario")', '-- Todos los propietarios --', '');
 	</script>
 }
