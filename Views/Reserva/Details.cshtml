@@ -2,7 +2,9 @@
 
 @{
 	ViewData["Title"] = "Detalles de la Reserva";
-	var usuarios = ViewBag.Usuarios as IList<Inmobiliaria.Models.Usuario>;
+	// El controlador resuelve los dos nombres por id: no hace falta bajar la tabla Usuario.
+	var creador = ViewBag.UsuarioCreador as string;
+	var finalizador = ViewBag.UsuarioFinalizador as string;
 }
 
 <h1>Reserva Nro @Model.Id_reserva</h1>
@@ -40,10 +42,8 @@
 	<dd class="col-sm-8">@(string.IsNullOrEmpty(Model.NombreInquilino) ? Model.Id_inquilino.ToString() : Model.NombreInquilino)</dd>
 	@if (User.IsInRole("Administrador"))
 	{
-		var creador = usuarios?.FirstOrDefault(u => u.Id_usuario == Model.Id_usuario_creador);
-		var finalizador = usuarios?.FirstOrDefault(u => u.Id_usuario == Model.Id_usuario_finalizador);
 		<dt class="col-sm-4">Usuario que la creó</dt>
-		<dd class="col-sm-8">@(creador != null ? creador.Apellido + ", " + creador.Nombre : Model.Id_usuario_creador.ToString())</dd>
+		<dd class="col-sm-8">@(!string.IsNullOrEmpty(creador) ? creador : Model.Id_usuario_creador.ToString())</dd>
 		<dt class="col-sm-4">Usuario que la finalizó</dt>
 		<dd class="col-sm-8">
 			@if (Model.Id_usuario_finalizador == 0)
@@ -52,7 +52,7 @@
 			}
 			else
 			{
-				@(finalizador != null ? finalizador.Apellido + ", " + finalizador.Nombre : Model.Id_usuario_finalizador.ToString())
+				@(!string.IsNullOrEmpty(finalizador) ? finalizador : Model.Id_usuario_finalizador.ToString())
 			}
 		</dd>
 	}

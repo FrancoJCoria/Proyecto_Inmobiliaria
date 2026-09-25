@@ -2,7 +2,9 @@
 
 @{
 	ViewData["Title"] = "Detalles del Pago";
-	var usuarios = ViewBag.Usuarios as IList<Inmobiliaria.Models.Usuario>;
+	// El controlador resuelve los dos nombres por id: no hace falta bajar la tabla Usuario.
+	var creador = ViewBag.UsuarioCreador as string;
+	var anulador = ViewBag.UsuarioAnulador as string;
 }
 
 <h1>Pago Nro @Model.Id_pago</h1>
@@ -31,14 +33,12 @@
 	</dd>
 	@if (User.IsInRole("Administrador"))
 	{
-		var creador = usuarios?.FirstOrDefault(u => u.Id_usuario == Model.Id_usuario_creador);
 		<dt class="col-sm-4">Usuario que lo creó</dt>
-		<dd class="col-sm-8">@(creador != null ? creador.Apellido + ", " + creador.Nombre : Model.Id_usuario_creador.ToString())</dd>
+		<dd class="col-sm-8">@(!string.IsNullOrEmpty(creador) ? creador : Model.Id_usuario_creador.ToString())</dd>
 		if (Model.Id_usuario_anulador != 0)
 		{
-			var anulador = usuarios?.FirstOrDefault(u => u.Id_usuario == Model.Id_usuario_anulador);
 			<dt class="col-sm-4">Usuario que lo anuló</dt>
-			<dd class="col-sm-8">@(anulador != null ? anulador.Apellido + ", " + anulador.Nombre : Model.Id_usuario_anulador.ToString())</dd>
+			<dd class="col-sm-8">@(!string.IsNullOrEmpty(anulador) ? anulador : Model.Id_usuario_anulador.ToString())</dd>
 		}
 	}
 </dl>
