@@ -1,0 +1,79 @@
+@model IEnumerable<Inmobiliaria.Models.Inmueble>
+
+@* Tabla de inmuebles con su dueño, compartida entre el listado general y el informe
+   "inmuebles de un propietario". Va en un partial para que las dos pantallas se
+   actualicen juntas y no se desincronicen las columnas. *@
+<table class="table table-striped align-middle">
+	<thead>
+		<tr>
+			<th>Foto</th>
+			<th>@Html.DisplayNameFor(model => model.Id_inmueble)</th>
+			<th>@Html.DisplayNameFor(model => model.Direccion)</th>
+			<th>Tipo</th>
+			<th>@Html.DisplayNameFor(model => model.Cupo)</th>
+			<th>Precio por dia</th>
+			<th>Propietario</th>
+			<th>Estado</th>
+			<th>Disponible</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>
+					@if (!string.IsNullOrEmpty(item.Portada))
+					{
+						<img src="@item.Portada" alt="Foto" class="img-thumbnail" style="width: 70px; height: 50px; object-fit: cover;" />
+					}
+					else
+					{
+						<span class="text-muted" style="font-size: 0.8rem;">Sin foto</span>
+					}
+				</td>
+				<td>@item.Id_inmueble</td>
+				<td>@item.Direccion</td>
+				<td>@item.NombreTipo</td>
+				<td>@item.Cupo</td>
+				<td>@item.Precio_dia.ToString("C")</td>
+				<td>@item.NombrePropietario</td>
+				<td>
+					@if (item.Estado)
+					{
+						<span class="badge bg-success">Activo</span>
+					}
+					else
+					{
+						<span class="badge bg-secondary">Inactivo</span>
+					}
+				</td>
+				<td>
+					@if (item.Disponible)
+					{
+						<span class="badge bg-success">Si</span>
+					}
+					else
+					{
+						<span class="badge bg-secondary">No</span>
+					}
+				</td>
+				<td>
+					@* RESERVA *@
+					@if (item.Disponible)
+					{
+						<a asp-controller="Reserva" asp-action="Create" asp-route-idInmueble="@item.Id_inmueble" class="btn btn-sm btn-success">Reservar</a>
+					}
+					else
+					{
+						<button class="btn btn-sm btn-secondary" disabled>Reservar</button>
+					}
+					<a asp-action="Details" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-info">Detalles</a>
+					<a asp-action="Edit" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-warning">Editar</a>
+					<a asp-action="Imagenes" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-secondary">Fotos</a>
+					<a asp-action="Delete" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-danger">Eliminar</a>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>

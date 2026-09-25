@@ -3,8 +3,6 @@
 @{
 	ViewData["Title"] = "Inmuebles más reservados";
 	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
-	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
-	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
 }
 
 <h1>Inmuebles más reservados en los últimos 365 días (@cantidad)</h1>
@@ -20,14 +18,13 @@
 				<th>Cupo</th>
 				<th>Precio por dia</th>
 				<th>Propietario</th>
+				<th>Reservas</th>
 				<th></th>
 			</tr>
 		</thead>
 		<tbody>
 			@foreach (var item in Model)
 			{
-				var duenio = propietarios?.FirstOrDefault(p => p.Id_propietario == item.Id_propietario);
-				var tipo = tipos?.FirstOrDefault(t => t.Id_tipo == item.Id_tipo);
 				<tr>
 					<td>
 						@if (!string.IsNullOrEmpty(item.Portada))
@@ -40,10 +37,11 @@
 						}
 					</td>
 					<td>@item.Direccion</td>
-					<td>@(tipo != null ? tipo.Nombre : item.Id_tipo.ToString())</td>
+					<td>@item.NombreTipo</td>
 					<td>@item.Cupo</td>
 					<td>@item.Precio_dia.ToString("C")</td>
-					<td>@(duenio != null ? duenio.Apellido + ", " + duenio.Nombre : item.Id_propietario.ToString())</td>
+					<td>@item.NombrePropietario</td>
+					<td>@item.CantidadReservas</td>
 					<td>
 						<a asp-action="Details" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-info">Detalles</a>
 					</td>
@@ -56,6 +54,9 @@ else
 {
 	<div class="alert alert-info">No hay inmuebles con reservas en el último año.</div>
 }
+
+<!------------------ Controles de paginación ------------------>
+@await Html.PartialAsync("_Paginador")
 
 <p>
 	<a asp-action="Informes" class="btn btn-secondary">Volver a Informes</a>

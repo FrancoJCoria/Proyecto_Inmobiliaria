@@ -4,7 +4,6 @@
 	ViewData["Title"] = "Inmuebles";
 	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
 	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
-	var tipos = ViewBag.Tipos as IList<Inmobiliaria.Models.TipoInmueble>;
 	int? filtroProp = ViewBag.FiltroPropietario as int?;
     bool? filtroDisp = ViewBag.FiltroDisponible as bool?;
     bool? filtroEst = ViewBag.FiltroEstado as bool?;
@@ -21,7 +20,9 @@
     <div class="row g-3 align-items-end">
         <div class="col-md-4">
             <label class="form-label fw-bold">Propietario:</label>
-            <select name="idPropietario" class="form-select">
+            <input type="text" id="busquedaFiltroPropietario" class="form-control mb-2"
+                placeholder="Escribí para filtrar por apellido, nombre o DNI..." autocomplete="off" />
+            <select name="idPropietario" id="filtroPropietario" class="form-select" size="5">
                 <option value="">-- Todos los propietarios --</option>
                 @if (propietarios != null)
                 {
@@ -90,82 +91,7 @@
         </div>
     </div>
 </form>
-<table class="table table-striped align-middle">
-	<thead>
-		<tr>
-			<th>Foto</th>
-			<th>@Html.DisplayNameFor(model => model.Id_inmueble)</th>
-			<th>@Html.DisplayNameFor(model => model.Direccion)</th>
-			<th>Tipo</th>
-			<th>@Html.DisplayNameFor(model => model.Cupo)</th>
-			<th>Precio por dia</th>
-			<th>Propietario</th>
-			<th>Estado</th>
-			<th>Disponible</th>
-			<th></th>
-		</tr>
-	</thead>
-	<tbody>
-		@foreach (var item in Model)
-		{
-			var duenio = propietarios?.FirstOrDefault(p => p.Id_propietario == item.Id_propietario);
-			var tipo = tipos?.FirstOrDefault(t => t.Id_tipo == item.Id_tipo);
-			<tr>
-				<td>
-					@if (!string.IsNullOrEmpty(item.Portada))
-					{
-						<img src="@item.Portada" alt="Foto" class="img-thumbnail" style="width: 70px; height: 50px; object-fit: cover;" />
-					}
-					else
-					{
-						<span class="text-muted" style="font-size: 0.8rem;">Sin foto</span>
-					}
-				</td>
-				<td>@item.Id_inmueble</td>
-				<td>@item.Direccion</td>
-				<td>@(tipo != null ? tipo.Nombre : item.Id_tipo.ToString())</td>
-				<td>@item.Cupo</td>
-				<td>@item.Precio_dia.ToString("C")</td>
-				<td>@(duenio != null ? duenio.Apellido + ", " + duenio.Nombre : item.Id_propietario.ToString())</td>
-				<td>
-					@if (item.Estado)
-					{
-						<span class="badge bg-success">Activo</span>
-					}
-					else
-					{
-						<span class="badge bg-secondary">Inactivo</span>
-					}
-				</td>
-				<td>
-					@if (item.Disponible)
-					{
-						<span class="badge bg-success">Si</span>
-					}
-					else
-					{
-						<span class="badge bg-secondary">No</span>
-					}
-				</td>
-				<td>
-					@* RESERVA *@
-                    @if (item.Disponible)
-                    {
-                        <a asp-controller="Reserva" asp-action="Create" asp-route-idInmueble="@item.Id_inmueble" class="btn btn-sm btn-success">Reservar</a>
-                    }
-                    else
-                    {
-                        <button class="btn btn-sm btn-secondary" disabled>Reservar</button>
-                    }
-					<a asp-action="Details" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-info">Detalles</a>
-					<a asp-action="Edit" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-warning">Editar</a>
-					<a asp-action="Imagenes" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-secondary">Fotos</a>
-					<a asp-action="Delete" asp-route-id="@item.Id_inmueble" class="btn btn-sm btn-danger">Eliminar</a>
-				</td>
-			</tr>
-		}
-	</tbody>
-</table>
+<partial name="_TablaInmuebles" model="Model" />
 
 @if (!Model.Any())
 {
@@ -174,3 +100,13 @@
 
 <!------------------ Controles de paginación ------------------>
 @await Html.PartialAsync("_Paginador")
+
+@section Scripts {
+	<partial name="_ScriptDesplegable" />
+	<script>
+		// El valor vacío de la opción "Todos" se pasa explícitamente porque en este filtro
+		// "sin selección" no es lo mismo que el id 0.
+		activarBusquedaDesplegable('#busquedaFiltroPropietario', '#filtroPropietario',
+			'@Url.Action("BuscarPropietarios", "Propietario")', '-- Todos los propietarios --', '');
+	</script>
+}

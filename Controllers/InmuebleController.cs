@@ -62,7 +62,6 @@ public class InmuebleController : Controller
             return NotFound();
         }
         inmueble.Imagenes = _repositorioImagen.BuscarPorInmueble(id);
-        CargarListas();
         return View(inmueble);
     }
 
@@ -136,7 +135,6 @@ public class InmuebleController : Controller
         {
             return NotFound();
         }
-        CargarListas();
         return View(inmueble);
     }
 
@@ -235,33 +233,78 @@ public class InmuebleController : Controller
         return View();
     }
 
-    public IActionResult MasReservados()
+    // Informe: inmuebles que le corresponden a un propietario específico.
+    // El propietario se elige de un desplegable con búsqueda en el servidor, no de una
+    // lista con todos los propietarios cargados.
+    public IActionResult PorPropietario(int? idPropietario, string? busquedaPropietario, int pagina = 1)
     {
-        var inmuebles = _repositorio.ObtenerMasReservados();
-        ViewData["Cantidad"] = inmuebles.Count();
-        CargarListas();
+        const int tamanoPagina = 5;
+
+        // El buscador del desplegable se resuelve en el servidor.
+        ViewBag.Propietarios = _repositorioPropietario.ObtenerTodos(busquedaPropietario);
+        ViewBag.BusquedaPropietario = busquedaPropietario;
+
+        // Un id 0 o negativo viene del placeholder "-- Todos --" y no es un filtro real.
+        if (idPropietario.HasValue && idPropietario.Value <= 0)
+        {
+            idPropietario = null;
+        }
+
+        int total = _repositorio.Contar(idPropietario);
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        var inmuebles = _repositorio.ObtenerTodos(pagina, tamanoPagina, idPropietario);
+        ViewData["Cantidad"] = total;
+        ViewBag.PropietarioSeleccionado = idPropietario;
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
         return View(inmuebles);
     }
 
-    public IActionResult MenosReservados(int? dias)
+    public IActionResult MasReservados(int pagina = 1)
     {
+        const int tamanoPagina = 5;
+
+        int total = _repositorio.ContarMasReservados();
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        // Los nombres de propietario y tipo vienen en el JOIN de la consulta, así que
+        // este informe no carga la lista completa de propietarios ni de tipos.
+        var inmuebles = _repositorio.ObtenerMasReservados(pagina, tamanoPagina);
+        ViewData["Cantidad"] = total;
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
+        return View(inmuebles);
+    }
+
+    public IActionResult MenosReservados(int? dias, int pagina = 1)
+    {
+        const int tamanoPagina = 5;
+
         int plazo = dias ?? 30;
         if (plazo < 1)
         {
             plazo = 30;
         }
 
-        var inmuebles = _repositorio.ObtenerMenosReservados(plazo);
-        ViewData["Cantidad"] = inmuebles.Count();
+        int total = _repositorio.ContarMenosReservados(plazo);
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        var inmuebles = _repositorio.ObtenerMenosReservados(plazo, pagina, tamanoPagina);
+        ViewData["Cantidad"] = total;
         ViewData["Dias"] = plazo;
-        CargarListas();
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
         return View(inmuebles);
     }
 
     [HttpGet]
-    public IActionResult BuscarDisponibles(DateTime? fechaInicio, DateTime? fechaFin)
+    public IActionResult BuscarDisponibles(DateTime? fechaInicio, DateTime? fechaFin, int pagina = 1)
     {
-        CargarListas();
+        const int tamanoPagina = 5;
 
         if (!fechaInicio.HasValue || !fechaFin.HasValue)
         {
@@ -277,7 +320,14 @@ public class InmuebleController : Controller
         ViewBag.FechaInicio = fechaInicio.Value.ToString("yyyy-MM-dd");
         ViewBag.FechaFin = fechaFin.Value.ToString("yyyy-MM-dd");
 
-        var lista = _repositorio.BuscarDisponiblesPorFechas(fechaInicio.Value, fechaFin.Value);
+        int total = _repositorio.ContarDisponiblesPorFechas(fechaInicio.Value, fechaFin.Value);
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        var lista = _repositorio.BuscarDisponiblesPorFechas(fechaInicio.Value, fechaFin.Value, pagina, tamanoPagina);
+        ViewData["Cantidad"] = total;
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
         return View(lista);
     }
 

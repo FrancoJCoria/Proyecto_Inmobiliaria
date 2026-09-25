@@ -1,0 +1,70 @@
+@model IEnumerable<Inmobiliaria.Models.Inmueble>
+
+@{
+	ViewData["Title"] = "Inmuebles por propietario";
+	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
+	var propietarios = ViewBag.Propietarios as IList<Inmobiliaria.Models.Propietario>;
+	string busqueda = (string)(ViewBag.BusquedaPropietario ?? "");
+	int? seleccionado = ViewBag.PropietarioSeleccionado as int?;
+	var nombrePropietario = propietarios?.FirstOrDefault(p => p.Id_propietario == seleccionado);
+}
+
+<h1>Inmuebles de @(nombrePropietario != null ? nombrePropietario.Apellido + ", " + nombrePropietario.Nombre : "todos los propietarios") (@cantidad)</h1>
+
+@* El buscador y el desplegable se envían por GET: el texto acota la lista de propietarios
+   que se ofrecen y el propietario elegido es el filtro del informe. *@
+<form asp-action="PorPropietario" method="get" class="card card-body bg-light mb-3">
+	<div class="row g-3 align-items-end">
+		<div class="col-md-4">
+			<label for="busquedaPropietario" class="form-label fw-bold">Buscar propietario:</label>
+			<input type="text" id="busquedaPropietario" name="busquedaPropietario" class="form-control"
+				value="@busqueda" placeholder="Apellido, nombre o DNI..." autocomplete="off" />
+		</div>
+		<div class="col-md-4">
+			<label for="filtroPropietario" class="form-label fw-bold">Propietario:</label>
+			<select name="idPropietario" id="filtroPropietario" class="form-select" size="5">
+				<option value="">-- Todos los propietarios --</option>
+				@if (propietarios != null)
+				{
+					foreach (var p in propietarios)
+					{
+						if (seleccionado == p.Id_propietario)
+						{
+							<option value="@p.Id_propietario" selected>@(p.Apellido + ", " + p.Nombre)</option>
+						}
+						else
+						{
+							<option value="@p.Id_propietario">@(p.Apellido + ", " + p.Nombre)</option>
+						}
+					}
+				}
+			</select>
+		</div>
+		<div class="col-md-4 d-flex gap-2">
+			<button type="submit" class="btn btn-primary w-100">Filtrar</button>
+			<a asp-action="PorPropietario" class="btn btn-outline-secondary w-100">Limpiar</a>
+		</div>
+	</div>
+</form>
+
+<partial name="_TablaInmuebles" model="Model" />
+
+@if (!Model.Any())
+{
+	<div class="alert alert-info">No hay inmuebles para el propietario elegido.</div>
+}
+
+<!------------------ Controles de paginación ------------------>
+@await Html.PartialAsync("_Paginador")
+
+<p>
+	<a asp-action="Informes" class="btn btn-secondary">Volver a Informes</a>
+</p>
+
+@section Scripts {
+	<partial name="_ScriptDesplegable" />
+	<script>
+		activarBusquedaDesplegable('#busquedaPropietario', '#filtroPropietario',
+			'@Url.Action("BuscarPropietarios", "Propietario")', '-- Todos los propietarios --', '');
+	</script>
+}

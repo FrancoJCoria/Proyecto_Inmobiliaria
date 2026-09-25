@@ -34,5 +34,15 @@ public class Inmueble
 
     public bool Estado { get; set; } = true;
 
+    // Los nombres del propietario y del tipo los trae el LEFT JOIN de la consulta.
+    // Solo se usan para mostrar en pantalla: nunca se guardan en la base.
+    public string NombrePropietario { get; set; } = "";
+
+    public string NombreTipo { get; set; } = "";
+
+    // Cantidad de reservas en el período del informe.
+    // Solo la calcula el informe de "más reservados".
+    public int CantidadReservas { get; set; }
+
     public override string ToString() => $"{Direccion} (cupo {Cupo})";
 }

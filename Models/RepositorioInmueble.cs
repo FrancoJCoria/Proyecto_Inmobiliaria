@@ -66,31 +66,41 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return comando.ExecuteNonQuery();
     }
 
-    public IList<Inmueble> ObtenerTodos(int pagina = 1, int tamanoPagina = 5, int? idPropietario = null, bool? disponible = null, bool? estado = null)
+    // Versión paginada del listado general. Sin defaults a propósito: si los tuviera,
+    // ObtenerTodos() sin argumentos sería ambiguo entre esta y la lista completa de abajo.
+    public IList<Inmueble> ObtenerTodos(int pagina, int tamanoPagina, int? idPropietario = null, bool? disponible = null, bool? estado = null)
     {        
-        
         var lista = new List<Inmueble>();
         int offset = (pagina - 1) * tamanoPagina;
 
         using var conexion = new MySqlConnection(connectionString);
 
-        string consultaSql = @"SELECT id_inmueble, direccion, cupo, precio_dia, porcentaje_reserva,
-        disponible, portada, id_propietario, id_tipo, estado
-        FROM Inmueble WHERE 1 = 1";
+        // El LEFT JOIN trae el nombre del propietario y del tipo para poder mostrarlos
+        // sin tener que cargar la lista completa de propietarios y de tipos.
+        // Ojo: como se unen otras tablas, las columnas van con el prefijo "i." para
+        // que no se confundan con las columnas homónimas de Propietario.
+        string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado,
+        COALESCE(CONCAT(p.apellido, ', ', p.nombre), '') AS nombre_propietario,
+        COALESCE(t.nombre, '') AS nombre_tipo
+        FROM Inmueble i
+        LEFT JOIN Propietario p ON p.id_propietario = i.id_propietario
+        LEFT JOIN TipoInmueble t ON t.id_tipo = i.id_tipo
+        WHERE 1 = 1";
 
         if (estado.HasValue)
         {
-            consultaSql += " AND estado = @estado";
+            consultaSql += " AND i.estado = @estado";
         }
 
         if(idPropietario.HasValue && idPropietario.Value > 0)
         {
-            consultaSql += " AND id_propietario = @idPropietario";
+            consultaSql += " AND i.id_propietario = @idPropietario";
         }
 
         if (disponible.HasValue)
         {
-            consultaSql += " AND disponible = @disponible";
+            consultaSql += " AND i.disponible = @disponible";
         }
 
         consultaSql += " ORDER BY id_inmueble ASC LIMIT @limit OFFSET @offset;";
@@ -124,13 +134,60 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return lista;
     }
 
+    // Lista completa para los desplegables, con filtro opcional en el servidor. Antes esta
+    // llamada caía en la versión paginada con sus defaults y por eso el desplegable de
+    // reservas solo mostraba los primeros 5 inmuebles.
+    public IList<Inmueble> ObtenerTodos(string? busqueda = null)
+    {
+        var lista = new List<Inmueble>();
+        using var conexion = new MySqlConnection(connectionString);
+
+        // Solo se ofrecen los inmuebles activos en los desplegables: no tiene sentido
+        // reservar a uno que está dado de baja.
+        string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado,
+        COALESCE(CONCAT(p.apellido, ', ', p.nombre), '') AS nombre_propietario,
+        COALESCE(t.nombre, '') AS nombre_tipo
+        FROM Inmueble i
+        LEFT JOIN Propietario p ON p.id_propietario = i.id_propietario
+        LEFT JOIN TipoInmueble t ON t.id_tipo = i.id_tipo
+        WHERE i.estado = 1";
+
+        if (!string.IsNullOrWhiteSpace(busqueda))
+        {
+            consultaSql += " AND i.direccion LIKE @busqueda";
+        }
+
+        consultaSql += " ORDER BY i.direccion ASC;";
+
+        using var comando = new MySqlCommand(consultaSql, conexion);
+        if (!string.IsNullOrWhiteSpace(busqueda))
+        {
+            // El % va en el valor del parámetro, nunca en el texto de la consulta.
+            comando.Parameters.AddWithValue("@busqueda", $"%{busqueda.Trim()}%");
+        }
+
+        conexion.Open();
+        using var lector = comando.ExecuteReader();
+        while (lector.Read())
+        {
+            lista.Add(LeerInmueble(lector));
+        }
+        return lista;
+    }
+
     public Inmueble? ObtenerPorId(int id)
     {
         Inmueble? inmueble = null;
         using var conexion = new MySqlConnection(connectionString);
-        string consultaSql = @"SELECT id_inmueble, direccion, cupo, precio_dia, porcentaje_reserva,
-        disponible, portada, id_propietario, id_tipo, estado
-        FROM Inmueble WHERE id_inmueble = @id";
+        string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado,
+        COALESCE(CONCAT(p.apellido, ', ', p.nombre), '') AS nombre_propietario,
+        COALESCE(t.nombre, '') AS nombre_tipo
+        FROM Inmueble i
+        LEFT JOIN Propietario p ON p.id_propietario = i.id_propietario
+        LEFT JOIN TipoInmueble t ON t.id_tipo = i.id_tipo
+        WHERE i.id_inmueble = @id";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@id", id);
@@ -168,7 +225,9 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
                 : lector.GetString("portada"),
             Id_propietario = lector.GetInt32("id_propietario"),
             Id_tipo = lector.GetInt32("id_tipo"),
-            Estado = LeerBool(lector, "estado")
+            Estado = LeerBool(lector, "estado"),
+            NombrePropietario = lector.GetString("nombre_propietario"),
+            NombreTipo = lector.GetString("nombre_tipo")
         };
     }
 
@@ -202,25 +261,38 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
 
 
 
-    public IList<Inmueble> BuscarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin)
+    public IList<Inmueble> BuscarDisponiblesPorFechas(DateTime fechaInicio, DateTime fechaFin, int pagina, int tamanoPagina)
     {
         var lista = new List<Inmueble>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var conexion = new MySqlConnection(connectionString);
 
+        // NOT EXISTS pregunta si el inmueble tiene alguna reserva que se pise con el
+        // rango elegido. Antes se usaba NOT IN, que se cambió porque NOT EXISTS es más
+        // claro y es el mismo criterio que usa ObtenerMenosReservados.
         string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
-        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado,
+        COALESCE(CONCAT(p.apellido, ', ', p.nombre), '') AS nombre_propietario,
+        COALESCE(t.nombre, '') AS nombre_tipo
         FROM Inmueble i
+        LEFT JOIN Propietario p ON p.id_propietario = i.id_propietario
+        LEFT JOIN TipoInmueble t ON t.id_tipo = i.id_tipo
         WHERE i.estado = 1 AND i.disponible = 1
-        AND i.id_inmueble NOT IN (
-        SELECT r.id_inmueble
-        FROM Reserva r
-        WHERE r.estado = 1 
-        AND r.fecha_inicio <= @fechaFin 
-        AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= @fechaInicio) ORDER BY i.id_inmueble ASC;";
+        AND NOT EXISTS (
+            SELECT 1 FROM Reserva r
+            WHERE r.id_inmueble = i.id_inmueble
+              AND r.estado = 1
+              AND r.fecha_inicio <= @fechaFin
+              AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= @fechaInicio
+        )
+        ORDER BY i.id_inmueble ASC
+        LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@fechaInicio", fechaInicio);
         comando.Parameters.AddWithValue("@fechaFin", fechaFin);
+        comando.Parameters.AddWithValue("@limit", tamanoPagina);
+        comando.Parameters.AddWithValue("@offset", offset);
 
         conexion.Open();
         using var lector = comando.ExecuteReader();
@@ -231,38 +303,62 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
         return lista;
     }
 
-    public IList<Inmueble> ObtenerMasReservados()
+    public IList<Inmueble> ObtenerMasReservados(int pagina, int tamanoPagina)
     {
         var lista = new List<Inmueble>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var conexion = new MySqlConnection(connectionString);
 
+        // COUNT(r.id_reserva) AS cantidad_reservas se selecciona para que el informe
+        // muestre cuántas reservas tiene cada inmueble y no solo el orden.
+        // Con ONLY_FULL_GROUP_BY hay que poner en el GROUP BY todas las columnas que
+        // no son funciones de agregación.
         string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
-        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado,
+        COALESCE(CONCAT(p.apellido, ', ', p.nombre), '') AS nombre_propietario,
+        COALESCE(t.nombre, '') AS nombre_tipo,
+        COUNT(r.id_reserva) AS cantidad_reservas
         FROM Inmueble i
+        LEFT JOIN Propietario p ON p.id_propietario = i.id_propietario
+        LEFT JOIN TipoInmueble t ON t.id_tipo = i.id_tipo
         JOIN Reserva r ON i.id_inmueble = r.id_inmueble
         WHERE i.estado = 1 AND r.estado = 1 AND r.fecha_inicio >= DATE_SUB(CURDATE(), INTERVAL 1 YEAR)
-        GROUP BY i.id_inmueble
-        ORDER BY COUNT(r.id_reserva) DESC;";
+        GROUP BY i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado,
+        nombre_propietario, nombre_tipo
+        ORDER BY cantidad_reservas DESC, i.id_inmueble ASC
+        LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
+        comando.Parameters.AddWithValue("@limit", tamanoPagina);
+        comando.Parameters.AddWithValue("@offset", offset);
 
         conexion.Open();
         using var lector = comando.ExecuteReader();
         while (lector.Read())
         {
-            lista.Add(LeerInmueble(lector));
+            Inmueble inmueble = LeerInmueble(lector);
+            // Esta columna solo existe en este informe, por eso se lee acá y no en
+            // el método LeerInmueble, que es compartido con los otros listados.
+            inmueble.CantidadReservas = lector.GetInt32("cantidad_reservas");
+            lista.Add(inmueble);
         }
         return lista;
     }
 
-    public IList<Inmueble> ObtenerMenosReservados(int cantidad)
+    public IList<Inmueble> ObtenerMenosReservados(int cantidad, int pagina, int tamanoPagina)
     {
         var lista = new List<Inmueble>();
+        int offset = (pagina - 1) * tamanoPagina;
         using var conexion = new MySqlConnection(connectionString);
 
         string consultaSql = @"SELECT i.id_inmueble, i.direccion, i.cupo, i.precio_dia, i.porcentaje_reserva,
-        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado
+        i.disponible, i.portada, i.id_propietario, i.id_tipo, i.estado,
+        COALESCE(CONCAT(p.apellido, ', ', p.nombre), '') AS nombre_propietario,
+        COALESCE(t.nombre, '') AS nombre_tipo
         FROM Inmueble i
+        LEFT JOIN Propietario p ON p.id_propietario = i.id_propietario
+        LEFT JOIN TipoInmueble t ON t.id_tipo = i.id_tipo
         WHERE i.estado = 1
         AND NOT EXISTS (
             SELECT 1 FROM Reserva r
@@ -271,10 +367,13 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
               AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= DATE_SUB(CURDATE(), INTERVAL @cantidad DAY)
               AND r.fecha_inicio <= CURDATE()
         )
-        ORDER BY i.id_inmueble ASC;";
+        ORDER BY i.id_inmueble ASC
+        LIMIT @limit OFFSET @offset;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@cantidad", cantidad);
+        comando.Parameters.AddWithValue("@limit", tamanoPagina);
+        comando.Parameters.AddWithValue("@offset", offset);
         conexion.Open();
         using var lector = comando.ExecuteReader();
         while (lector.Read())
@@ -370,15 +469,21 @@ public class RepositorioInmueble : RepositorioBase, IRepositorioInmueble
     {
         using var conexion = new MySqlConnection(connectionString);
 
+        // Mismo criterio que BuscarDisponiblesPorFechas: el inmueble queda libre si NO
+        // tiene ninguna reserva activa que se pise con el rango pedido. Se usa NOT EXISTS
+        // y no NOT IN porque, si alguna vez hubiere una reserva con id_inmueble NULL,
+        // NOT IN descartaría todos los inmuebles y el total del informe no coincidiría
+        // con el listado.
         string consultaSql = @"SELECT COUNT(*)
         FROM Inmueble i
         WHERE i.estado = 1 AND i.disponible = 1
-        AND i.id_inmueble NOT IN (
-            SELECT r.id_inmueble
-            FROM Reserva r
-            WHERE r.estado = 1 
-            AND r.fecha_inicio <= @fechaFin 
-            AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= @fechaInicio);";
+        AND NOT EXISTS (
+            SELECT 1 FROM Reserva r
+            WHERE r.id_inmueble = i.id_inmueble
+              AND r.estado = 1
+              AND r.fecha_inicio <= @fechaFin
+              AND COALESCE(r.fecha_fin_efectiva, r.fecha_fin) >= @fechaInicio
+        );";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         comando.Parameters.AddWithValue("@fechaInicio", fechaInicio);
