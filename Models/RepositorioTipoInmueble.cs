@@ -46,8 +46,10 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
         return comando.ExecuteNonQuery();
     }
 
-    // Lista completa para el desplegable de tipos, con filtro opcional en el servidor.
-    public IList<TipoInmueble> ObtenerTodos(string? busqueda = null)
+    // Devuelve solo los tipos que coinciden con el termino escrito en el buscador del
+    // desplegable, y como mucho "limite" filas. Los tipos son una tabla chica de consulta,
+    // asi que el limite casi nunca se llega a tocar.
+    public IList<TipoInmueble> ObtenerTodos(string? busqueda = null, int limite = 20)
     {
         var lista = new List<TipoInmueble>();
         using var conexion = new MySqlConnection(connectionString);
@@ -59,7 +61,7 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
             consultaSql += " AND nombre LIKE @busqueda";
         }
 
-        consultaSql += " ORDER BY nombre ASC;";
+        consultaSql += " ORDER BY nombre ASC LIMIT @limite;";
 
         using var comando = new MySqlCommand(consultaSql, conexion);
         if (!string.IsNullOrWhiteSpace(busqueda))
@@ -67,6 +69,9 @@ public class RepositorioTipoInmueble : RepositorioBase, IRepositorioTipoInmueble
             // El % va en el valor del parámetro, nunca en el texto de la consulta.
             comando.Parameters.AddWithValue("@busqueda", $"%{busqueda.Trim()}%");
         }
+        // Acota la cantidad de filas que vuelven de la base, que es lo que evita que
+        // un termino corto se trajeera el catalogo entero.
+        comando.Parameters.AddWithValue("@limite", limite);
 
         conexion.Open();
         using var lector = comando.ExecuteReader();

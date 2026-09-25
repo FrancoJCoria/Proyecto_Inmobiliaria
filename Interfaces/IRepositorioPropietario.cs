@@ -8,10 +8,11 @@ public interface IRepositorioPropietario
     int Alta(Propietario p);
     int Baja(Propietario p);
     int Modificacion(Propietario p);
-    // Lista completa, sin paginar, para los desplegables. Con "busqueda" filtra en el
-    // servidor por apellido, nombre o dni. La versión paginada NO lleva defaults, así
-    // "ObtenerTodos()" sin argumentos cae inequívocamente en esta.
-    IList<Propietario> ObtenerTodos(string? busqueda = null);
+    // Filtro en el servidor para los desplegables: trae los propietarios que coinciden
+    // con "busqueda" (por apellido, nombre o dni) y como mucho "limite" filas. Es la unica
+    // forma de obtener opciones para un desplegable: nunca se pide la tabla completa.
+    IList<Propietario> ObtenerTodos(string? busqueda = null, int limite = 20);
+    // Listado paginado de la pagina de Propietarios, sin filtro de texto.
     IList<Propietario> ObtenerTodos(int pagina, int tamanoPagina);
     int Contar();
     Propietario? ObtenerPorId(int id);

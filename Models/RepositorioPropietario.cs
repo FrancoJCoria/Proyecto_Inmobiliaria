@@ -226,10 +226,11 @@ public class RepositorioPropietario : RepositorioBase, IRepositorioPropietario
         }
     }
 
-    //------------------------------------------------------------LISTAR TODOS (SIN PAGINAR - PARA SELECTS)-----------------------------------------------------------------
-    // Lista completa para los desplegables, con filtro opcional en el servidor. Con "busqueda"
-    // filtra por apellido, nombre o dni, que es lo que se escribe en el buscador del desplegable.
-    public IList<Propietario> ObtenerTodos(string? busqueda = null)
+    //------------------------------------------------------------FILTRAR PARA LOS DESPLEGABLES-----------------------------------------------------------------
+    // Devuelve solo los propietarios que coinciden con el termino escrito en el buscador del
+    // desplegable, y como mucho "limite" filas. Esta es la unica forma en que un desplegable
+    // obtiene sus opciones: nunca se pide la tabla completa.
+    public IList<Propietario> ObtenerTodos(string? busqueda = null, int limite = 20)
     {
         try
         {
@@ -247,7 +248,7 @@ public class RepositorioPropietario : RepositorioBase, IRepositorioPropietario
                 consultaSql += " AND (nombre LIKE @busqueda OR apellido LIKE @busqueda OR dni LIKE @busqueda)";
             }
 
-            consultaSql += " ORDER BY apellido, nombre ASC;";
+            consultaSql += " ORDER BY apellido, nombre ASC LIMIT @limite;";
 
             using var comando = new MySqlCommand(consultaSql, conexion);
             if (!string.IsNullOrWhiteSpace(busqueda))
@@ -255,6 +256,9 @@ public class RepositorioPropietario : RepositorioBase, IRepositorioPropietario
                 // El % va en el valor del parámetro, nunca en el texto de la consulta.
                 comando.Parameters.AddWithValue("@busqueda", $"%{busqueda.Trim()}%");
             }
+            // Acota la cantidad de filas que vuelven de la base, que es lo que evita que
+            // un termino corto se trajeera el catalogo entero.
+            comando.Parameters.AddWithValue("@limite", limite);
 
             conexion.Open();
             using var leerLista = comando.ExecuteReader();
@@ -276,7 +280,7 @@ public class RepositorioPropietario : RepositorioBase, IRepositorioPropietario
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Fallo en ObtenerTodos sin paginar: {e.Message}");
+            Console.WriteLine($"Fallo al filtrar propietarios para el desplegable: {e.Message}");
             throw;
         }
     }
