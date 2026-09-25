@@ -15,12 +15,18 @@ public class InquilinoController : Controller
 
     public IActionResult Index(int pagina = 1)
     {
-        if (pagina < 1) pagina = 1;
-        int tamanoPagina = 5;
+        const int tamanoPagina = 5;
+
+        int total = _repositorio.Contar();
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
 
         var inquilinos = _repositorio.ObtenerTodos(pagina, tamanoPagina);
+
+        // El total del titulo es el real de la tabla, no las filas de esta pagina.
+        ViewData["Cantidad"] = total;
         ViewBag.PaginaActual = pagina;
-        ViewData["Cantidad"] = inquilinos.Count();
+        ViewBag.TotalPaginas = totalPaginas;
         ViewBag.Otro = "Bienvenido al listado de inquilinos";
 
         return View(inquilinos);

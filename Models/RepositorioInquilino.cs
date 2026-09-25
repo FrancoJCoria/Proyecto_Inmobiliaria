@@ -55,8 +55,10 @@ public class RepositorioInquilino : RepositorioBase, IRepositorioInquilino
         return filasAfectadas;
     }
 
-//----------------------------------------------------------------LISTAR TODSOS LOS INQUILINOS-------------------------------------------
-public IList<Inquilino> ObtenerTodos(int pagina = 1, int tamanoPagina = 5)
+//----------------------------------------------------------------LISTAR TODOS LOS INQUILINOS (PAGINADO)-------------------------------------------
+    // Sin defaults a propósito: si los tuviera, ObtenerTodos() sin argumentos sería
+    // ambiguo entre esta versión y la lista completa de abajo.
+    public IList<Inquilino> ObtenerTodos(int pagina, int tamanoPagina)
     {
         try{
         var inquilinos = new List<Inquilino>();
@@ -89,6 +91,84 @@ public IList<Inquilino> ObtenerTodos(int pagina = 1, int tamanoPagina = 5)
         catch (Exception e)
         {
             Console.WriteLine($"Fallo en ObtenerTodos Inquilino: {e.Message}");
+            throw;
+        }
+    }
+
+//----------------------------------------------------------------LISTAR TODOS LOS INQUILINOS (SIN PAGINAR - PARA SELECTS)-------------------------------------------
+    // Lista completa para los desplegables, con filtro opcional en el servidor. Antes esta
+    // llamada caía en la versión paginada con sus defaults y por eso el desplegable de
+    // reservas solo mostraba los primeros 5 inquilinos.
+    public IList<Inquilino> ObtenerTodos(string? busqueda = null)
+    {
+        try
+        {
+            var inquilinos = new List<Inquilino>();
+            using var connection = new MySqlConnection(connectionString);
+
+            // Solo se ofrecen los inquilinos activos en los desplegables: no tiene sentido
+            // reservar a uno que está dado de baja.
+            string consultaSql = @"SELECT id_inquilino, dni, nombre, apellido, telefono, email, estado
+            FROM Inquilino
+            WHERE estado = 1";
+
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                consultaSql += " AND (nombre LIKE @busqueda OR apellido LIKE @busqueda OR dni LIKE @busqueda)";
+            }
+
+            consultaSql += " ORDER BY apellido, nombre ASC;";
+
+            using var command = new MySqlCommand(consultaSql, connection);
+            if (!string.IsNullOrWhiteSpace(busqueda))
+            {
+                // El % va en el valor del parámetro, nunca en el texto de la consulta.
+                command.Parameters.AddWithValue("@busqueda", $"%{busqueda.Trim()}%");
+            }
+
+            connection.Open();
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                inquilinos.Add(new Inquilino
+                {
+                    Id_inquilino = reader.GetInt32("id_inquilino"),
+                    Dni = reader.GetString("dni"),
+                    Nombre = reader.GetString("nombre"),
+                    Apellido = reader.GetString("apellido"),
+                    Telefono = reader.GetString("telefono"),
+                    Email = reader.GetString("email"),
+                    Estado = reader.GetBoolean("estado")
+                });
+            }
+            return inquilinos;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Fallo en ObtenerTodos sin paginar Inquilino: {e.Message}");
+            throw;
+        }
+    }
+
+//------------------------------------------------------------CONTAR INQUILINOS (TOTAL REAL PARA LA PAGINACION)--------------------------------
+    // Ojo: aca NO se filtra por estado a proposito. El listado paginado de arriba
+    // tampoco lo hace, porque la vista muestra el badge Activo/Inactivo. Si el conteo
+    // filtrara y el listado no, el titulo y la tabla dejarian de coincidir.
+    public int Contar()
+    {
+        try
+        {
+            using var conexion = new MySqlConnection(connectionString);
+
+            string consultaSql = "SELECT COUNT(*) FROM Inquilino;";
+
+            using var comando = new MySqlCommand(consultaSql, conexion);
+            conexion.Open();
+            return Convert.ToInt32(comando.ExecuteScalar());
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Fallo en Contar Inquilino: {e.Message}");
             throw;
         }
     }
