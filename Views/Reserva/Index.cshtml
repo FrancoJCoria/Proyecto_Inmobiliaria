@@ -3,8 +3,6 @@
 @{
 	ViewData["Title"] = "Reservas";
 	int cantidad = (int)(ViewData["Cantidad"] ?? 0);
-	var inmuebles = ViewBag.Inmuebles as IList<Inmobiliaria.Models.Inmueble>;
-	var inquilinos = ViewBag.Inquilinos as IList<Inmobiliaria.Models.Inquilino>;
 }
 
 <h1>Listado de Reservas (@cantidad)</h1>
@@ -30,14 +28,12 @@
 	<tbody>
 		@foreach (var item in Model)
 		{
-			var inm = inmuebles?.FirstOrDefault(m => m.Id_inmueble == item.Id_inmueble);
-			var inq = inquilinos?.FirstOrDefault(q => q.Id_inquilino == item.Id_inquilino);
 			<tr>
 				<td>@item.Id_reserva</td>
 				<td>@item.Fecha_inicio.ToString("dd/MM/yyyy")</td>
 				<td>@item.Fecha_fin.ToString("dd/MM/yyyy")</td>
-				<td>@(inm != null ? inm.Direccion : item.Id_inmueble.ToString())</td>
-				<td>@(inq != null ? inq.Apellido + ", " + inq.Nombre : item.Id_inquilino.ToString())</td>
+				<td>@(string.IsNullOrEmpty(item.NombreInmueble) ? item.Id_inmueble.ToString() : item.NombreInmueble)</td>
+				<td>@(string.IsNullOrEmpty(item.NombreInquilino) ? item.Id_inquilino.ToString() : item.NombreInquilino)</td>
 				<td>@item.Monto_diario.ToString("C")</td>
 				<td>
 					@if (item.Fecha_fin_efectiva != DateTime.MinValue)
@@ -72,3 +68,6 @@
 {
 	<div class="alert alert-info">No hay reservas cargadas todavía.</div>
 }
+
+<!------------------ Controles de paginación ------------------>
+@await Html.PartialAsync("_Paginador")

@@ -22,11 +22,20 @@ public class ReservaController : Controller
         _repositorioPago = repositorioPago;
     }
 
-    public IActionResult Index()
+    public IActionResult Index(int pagina = 1)
     {
-        var reservas = _repositorio.ObtenerTodos();
-        ViewData["Cantidad"] = reservas.Count();
-        CargarListas();
+        const int tamanoPagina = 5;
+
+        int total = _repositorio.Contar();
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        // El nombre del inmueble y del inquilino ya viene en el JOIN de la consulta,
+        // así que esta vista no necesita ninguna de las listas de los desplegables.
+        var reservas = _repositorio.ObtenerTodos(pagina, tamanoPagina);
+        ViewData["Cantidad"] = total;
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
         return View(reservas);
     }
 
@@ -38,7 +47,7 @@ public class ReservaController : Controller
         {
             return NotFound();
         }
-        CargarListas();
+        CargarUsuarios();
         return View(reserva);
     }
 
@@ -276,8 +285,10 @@ public IActionResult Informes()
         return View();
     }
 
-    public IActionResult Vigentes(DateTime? desde, DateTime? hasta)
+    public IActionResult Vigentes(DateTime? desde, DateTime? hasta, int pagina = 1)
     {
+        const int tamanoPagina = 5;
+
         DateTime desdeFecha = desde ?? DateTime.Today.AddMonths(-1);
         DateTime hastaFecha = hasta ?? DateTime.Today.AddMonths(1);
         if (hastaFecha < desdeFecha)
@@ -285,26 +296,40 @@ public IActionResult Informes()
             hastaFecha = desdeFecha;
         }
 
-        var reservas = _repositorio.ObtenerVigentes(desdeFecha, hastaFecha);
-        ViewData["Cantidad"] = reservas.Count();
+        int total = _repositorio.ContarVigentes(desdeFecha, hastaFecha);
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        // El nombre del inmueble y del inquilino vienen en el JOIN de la consulta, así
+        // que estos informes no cargan la lista completa de inmuebles ni de inquilinos.
+        var reservas = _repositorio.ObtenerVigentes(desdeFecha, hastaFecha, pagina, tamanoPagina);
+        ViewData["Cantidad"] = total;
         ViewData["Desde"] = desdeFecha;
         ViewData["Hasta"] = hastaFecha;
-        CargarListas();
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
         return View(reservas);
     }
 
-    public IActionResult PorTerminar(int? dias)
+    public IActionResult PorTerminar(int? dias, int pagina = 1)
     {
+        const int tamanoPagina = 5;
+
         int plazo = dias ?? 30;
         if (plazo < 1)
         {
             plazo = 30;
         }
 
-        var reservas = _repositorio.ObtenerPorTerminar(plazo);
-        ViewData["Cantidad"] = reservas.Count();
+        int total = _repositorio.ContarPorTerminar(plazo);
+        int totalPaginas = Math.Max(1, (int)Math.Ceiling(total / (double)tamanoPagina));
+        pagina = Math.Clamp(pagina, 1, totalPaginas);
+
+        var reservas = _repositorio.ObtenerPorTerminar(plazo, pagina, tamanoPagina);
+        ViewData["Cantidad"] = total;
         ViewData["Dias"] = plazo;
-        CargarListas();
+        ViewBag.PaginaActual = pagina;
+        ViewBag.TotalPaginas = totalPaginas;
         return View(reservas);
     }
 
@@ -335,10 +360,43 @@ public IActionResult Informes()
         return int.TryParse(idClaim, out var id) ? id : null;
     }
 
-    private void CargarListas()
+    private void CargarListas(string? busquedaInmueble = null, string? busquedaInquilino = null)
     {
-        ViewBag.Inquilinos = _repositorioInquilino.ObtenerTodos();
+        // Los dos términos van separados porque cada desplegable se busca por su cuenta.
+        // ViewBag.Usuarios no se busca: acá solo se usa para resolver nombres.
+        ViewBag.Inquilinos = _repositorioInquilino.ObtenerTodos(busquedaInquilino);
+        ViewBag.Inmuebles = _repositorioInmueble.ObtenerTodos(busquedaInmueble);
+        CargarUsuarios();
+    }
+
+    private void CargarUsuarios()
+    {
         ViewBag.Usuarios = _repositorioUsuario.ObtenerTodos();
-        ViewBag.Inmuebles = _repositorioInmueble.ObtenerTodos(estado: true);
+    }
+
+    //------------------------------------------------------------------------------------------BUSQUEDA EN LOS DESPLEGABLES------------------------------------------//
+    // Devuelven solo el id y la etiqueta porque es lo único que el <select> necesita.
+    // El filtro se hace en el servidor: si se paginara en el cliente, el usuario vería
+    // una lista incompleta sin chances de encontrar lo que busca.
+    [HttpGet]
+    public IActionResult BuscarInquilinos(string? termino)
+    {
+        var lista = _repositorioInquilino.ObtenerTodos(termino);
+        return Json(lista.Select(i => new
+        {
+            id = i.Id_inquilino,
+            etiqueta = $"{i.Apellido}, {i.Nombre} ({i.Dni})"
+        }));
+    }
+
+    [HttpGet]
+    public IActionResult BuscarInmuebles(string? termino)
+    {
+        var lista = _repositorioInmueble.ObtenerTodos(termino);
+        return Json(lista.Select(m => new
+        {
+            id = m.Id_inmueble,
+            etiqueta = $"{m.Direccion} (cupo {m.Cupo})"
+        }));
     }
 }

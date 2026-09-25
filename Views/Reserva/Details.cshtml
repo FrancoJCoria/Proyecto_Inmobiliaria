@@ -2,11 +2,7 @@
 
 @{
 	ViewData["Title"] = "Detalles de la Reserva";
-	var inmuebles = ViewBag.Inmuebles as IList<Inmobiliaria.Models.Inmueble>;
-	var inquilinos = ViewBag.Inquilinos as IList<Inmobiliaria.Models.Inquilino>;
 	var usuarios = ViewBag.Usuarios as IList<Inmobiliaria.Models.Usuario>;
-	var inm = inmuebles?.FirstOrDefault(m => m.Id_inmueble == Model.Id_inmueble);
-	var inq = inquilinos?.FirstOrDefault(q => q.Id_inquilino == Model.Id_inquilino);
 }
 
 <h1>Reserva Nro @Model.Id_reserva</h1>
@@ -39,9 +35,9 @@
 	<dt class="col-sm-4">Monto diario</dt>
 	<dd class="col-sm-8">@Model.Monto_diario.ToString("C")</dd>
 	<dt class="col-sm-4">Inmueble</dt>
-	<dd class="col-sm-8">@(inm != null ? inm.Direccion : Model.Id_inmueble.ToString())</dd>
+	<dd class="col-sm-8">@(string.IsNullOrEmpty(Model.NombreInmueble) ? Model.Id_inmueble.ToString() : Model.NombreInmueble)</dd>
 	<dt class="col-sm-4">Inquilino</dt>
-	<dd class="col-sm-8">@(inq != null ? inq.Apellido + ", " + inq.Nombre : Model.Id_inquilino.ToString())</dd>
+	<dd class="col-sm-8">@(string.IsNullOrEmpty(Model.NombreInquilino) ? Model.Id_inquilino.ToString() : Model.NombreInquilino)</dd>
 	@if (User.IsInRole("Administrador"))
 	{
 		var creador = usuarios?.FirstOrDefault(u => u.Id_usuario == Model.Id_usuario_creador);

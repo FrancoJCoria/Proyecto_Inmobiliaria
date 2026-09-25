@@ -36,6 +36,12 @@ public class Reserva()
     [Required]
     public int Id_usuario_finalizador{get; set;}
 
+    // El nombre del inmueble y del inquilino los trae el LEFT JOIN de la consulta.
+    // Solo se usan para mostrar en pantalla: nunca se guardan en la base.
+    public string NombreInmueble { get; set; } = "";
+
+    public string NombreInquilino { get; set; } = "";
+
     public override string ToString()
     {
         return $"Reserva #{Id_reserva} - Inmueble: {Id_inmueble}, Inquilino: {Id_inquilino}, Desde: {Fecha_inicio}, Hasta: {Fecha_fin}, Monto Diario: {Monto_diario}, Estado: {Estado}";
